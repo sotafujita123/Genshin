@@ -10,6 +10,70 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK モジュール & 保存同期エンジン -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithCustomToken, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'genshin-tcg-duel';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyDummyKey",
+            authDomain: "dummy.firebaseapp.com",
+            projectId: "dummy-project",
+            storageBucket: "dummy.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:dummy"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.appId = appId;
+
+        window.fbCreateUser = (email, pass) => createUserWithEmailAndPassword(auth, email, pass);
+        window.fbSignIn = (email, pass) => signInWithEmailAndPassword(auth, email, pass);
+        window.fbSignOut = () => signOut(auth);
+        window.fbDoc = doc;
+        window.fbGetDoc = getDoc;
+        window.fbSetDoc = setDoc;
+
+        // ログイン状態変更の常時監視
+        onAuthStateChanged(auth, async (user) => {
+            const headerStatus = document.getElementById('header-user-status');
+            const authStatusTxt = document.getElementById('auth-status-txt');
+            
+            if (user) {
+                const displayName = user.email ? user.email.split('@')[0] : 'ゲスト';
+                if (headerStatus) headerStatus.innerText = displayName;
+                if (authStatusTxt) authStatusTxt.innerText = `ログイン中: ${user.email || 'ID: ' + user.uid.substring(0, 8)}`;
+                await window.loadFromFirestore(user.uid);
+            } else {
+                if (headerStatus) headerStatus.innerText = 'ログイン';
+                if (authStatusTxt) authStatusTxt.innerText = '未ログイン（ローカル保存中）';
+            }
+        });
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            try { signInWithCustomToken(auth, __initial_auth_token); } catch(e){}
+        }
+    </script>
     <style>
         body {
             user-select: none;
@@ -563,13 +627,23 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h3 class="text-lg font-black text-indigo-300 mb-1">クラウド保存・ログイン</h3>
-            <p class="text-xs text-slate-400 mb-4">メールアドレスで端末間同期が可能です</p>
+            <p id="auth-status-txt" class="text-xs text-amber-300 font-bold mb-4">ログイン状態を確認中...</p>
             <div class="space-y-3">
                 <input type="email" id="auth-email" placeholder="メールアドレス" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 <input type="password" id="auth-password" placeholder="パスワード(6文字以上)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
-                <button onclick="window.closeAuthModal()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-2.5 rounded-xl text-xs shadow">
-                    ログイン / 保存完了
-                </button>
+                <div class="flex gap-2">
+                    <button onclick="window.handleAuthAction(false)" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs shadow transition active:scale-95">
+                        ログイン
+                    </button>
+                    <button onclick="window.handleAuthAction(true)" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow transition active:scale-95">
+                        新規アカウント登録
+                    </button>
+                </div>
+                <div class="border-t border-slate-800 pt-2">
+                    <button onclick="window.handleSignOut()" class="text-xs text-slate-400 hover:text-rose-400 font-bold flex items-center justify-center gap-1 mx-auto">
+                        <i class="fa-solid fa-right-from-bracket"></i> ログアウト
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -596,6 +670,112 @@
                 fieldStatuses: [],
                 deck: [],
                 hand: []
+            }
+        };
+
+        // ローカル＆クラウドデータ同期保存
+        window.saveGameState = async function() {
+            const saveData = {
+                diamonds: window.STATE.diamonds,
+                unlockedCharIds: window.STATE.unlockedCharIds,
+                parties: window.STATE.parties,
+                customImages: window.STATE.customImages || {},
+                updatedAt: new Date().toISOString()
+            };
+            
+            // 1. ブラウザローカル保存
+            try {
+                localStorage.setItem('genshin_tcg_save_v1', JSON.stringify(saveData));
+            } catch(e) {}
+            
+            // 2. クラウド（Firestore）同期
+            if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+                try {
+                    const docRef = window.fbDoc(window.firebaseDb, 'artifacts', window.appId, 'users', window.firebaseAuth.currentUser.uid, 'userData', 'gameState');
+                    await window.fbSetDoc(docRef, saveData, { merge: true });
+                } catch(e) {
+                    console.error("Cloud save error:", e);
+                }
+            }
+        };
+
+        window.loadLocalSave = function() {
+            try {
+                const local = localStorage.getItem('genshin_tcg_save_v1');
+                if (local) {
+                    const parsed = JSON.parse(local);
+                    if (parsed.diamonds !== undefined) window.STATE.diamonds = parsed.diamonds;
+                    if (parsed.unlockedCharIds) window.STATE.unlockedCharIds = parsed.unlockedCharIds;
+                    if (parsed.parties) window.STATE.parties = parsed.parties;
+                    if (parsed.customImages) window.STATE.customImages = parsed.customImages;
+                    const elem = document.getElementById('global-diamonds');
+                    if (elem) elem.innerText = window.STATE.diamonds;
+                }
+            } catch(e) {}
+        };
+
+        window.loadFromFirestore = async function(userId) {
+            if (!window.firebaseDb || !userId) return;
+            try {
+                const docRef = window.fbDoc(window.firebaseDb, 'artifacts', window.appId, 'users', userId, 'userData', 'gameState');
+                const snap = await window.fbGetDoc(docRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.diamonds !== undefined) window.STATE.diamonds = data.diamonds;
+                    if (data.unlockedCharIds) window.STATE.unlockedCharIds = data.unlockedCharIds;
+                    if (data.parties) window.STATE.parties = data.parties;
+                    if (data.customImages) window.STATE.customImages = data.customImages;
+
+                    const elem = document.getElementById('global-diamonds');
+                    if (elem) elem.innerText = window.STATE.diamonds;
+
+                    window.updateBattleUI();
+                    if (!document.getElementById('page-party').classList.contains('hidden')) {
+                        window.renderPartyPage();
+                    }
+                    localStorage.setItem('genshin_tcg_save_v1', JSON.stringify(data));
+                }
+            } catch(e) {
+                console.error("Cloud load error:", e);
+            }
+        };
+
+        window.handleAuthAction = async function(isRegister) {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            
+            if (!email || !password) {
+                window.showModal('入力エラー', 'メールアドレスとパスワードを入力してください。', 'fa-triangle-exclamation text-rose-400');
+                return;
+            }
+            if (password.length < 6) {
+                window.showModal('パスワードエラー', 'パスワードは6文字以上で設定してください。', 'fa-key text-rose-400');
+                return;
+            }
+
+            try {
+                if (isRegister) {
+                    await window.fbCreateUser(email, password);
+                    window.showModal('アカウント作成完了', `「${email}」で新規登録しました！立ち絵などのデータが自動でクラウド保存されます。`, 'fa-circle-check text-emerald-400');
+                    await window.saveGameState();
+                } else {
+                    await window.fbSignIn(email, password);
+                    window.showModal('ログイン完了', `「${email}」でログインしました！保存データが復元されました。`, 'fa-user-check text-indigo-400');
+                }
+                window.closeAuthModal();
+            } catch(err) {
+                let msg = err.message;
+                if (err.code === 'auth/email-already-in-use') msg = 'このメールアドレスは既に登録されています。ログインをお試しください。';
+                else if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') msg = 'メールアドレスまたはパスワードが正しくありません。';
+                window.showModal('認証エラー', msg, 'fa-triangle-exclamation text-rose-400');
+            }
+        };
+
+        window.handleSignOut = async function() {
+            if (window.fbSignOut) {
+                await window.fbSignOut();
+                window.showModal('ログアウト', 'ログアウトしました。', 'fa-right-from-bracket text-slate-400');
+                window.closeAuthModal();
             }
         };
 
@@ -751,6 +931,7 @@
                 }
             }
 
+            window.saveGameState(); // 保存実行
             window.renderGachaResults(results);
         };
 
@@ -1272,6 +1453,7 @@
                 currentParty.push(charId);
             }
             window.STATE.parties[window.STATE.editingPartyIdx] = currentParty;
+            window.saveGameState(); // 保存実行
             window.renderPartyPage();
         };
 
@@ -1326,14 +1508,37 @@
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                if (!window.STATE.customImages) window.STATE.customImages = {};
-                window.STATE.customImages[currentPosterCharId] = e.target.result;
+                const img = new Image();
+                img.onload = function() {
+                    // 画像の自動軽量化 (容量オーバーを防いで即時保存)
+                    const canvas = document.createElement('canvas');
+                    const maxWidth = 380;
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+                    if (!window.STATE.customImages) window.STATE.customImages = {};
+                    window.STATE.customImages[currentPosterCharId] = compressedDataUrl;
 
-                document.getElementById('poster-char-art-container').innerHTML = window.getCharVisualHtml(currentPosterCharId, 'h-64 sm:h-72');
-                window.updateBattleUI();
-                if (!document.getElementById('page-party').classList.contains('hidden')) {
-                    window.renderPartyPage();
-                }
+                    document.getElementById('poster-char-art-container').innerHTML = window.getCharVisualHtml(currentPosterCharId, 'h-64 sm:h-72');
+                    window.updateBattleUI();
+                    if (!document.getElementById('page-party').classList.contains('hidden')) {
+                        window.renderPartyPage();
+                    }
+
+                    // デュアル保存の実行
+                    window.saveGameState();
+                    window.showModal('立ち絵保存完了', 'アップロードした画像が保存されました！ログイン時はクラウドへ自動バックアップされます。', 'fa-floppy-disk text-emerald-400');
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         };
@@ -1375,6 +1580,7 @@
 
         // 起動初期化
         window.onload = function() {
+            window.loadLocalSave(); // ローカルから即時復元
             window.initBattle();
             window.renderPartyPage();
         };
