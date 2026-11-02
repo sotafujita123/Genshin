@@ -66,52 +66,83 @@
         .damage-popup {
             position: absolute;
             font-weight: 900;
-            font-size: 1.8rem;
-            color: #ef4444;
-            text-shadow: 0 0 6px #000, 2px 2px 0 #000;
+            font-size: 3rem;
+            color: #ff3344;
+            text-shadow: 0 0 12px #000, 3px 3px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
             pointer-events: none;
-            animation: popAndFade 1.1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            animation: popBoom 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             z-index: 100;
+            white-space: nowrap;
+            left: 50%;
+            top: 40%;
+            transform: translate(-50%, -50%);
         }
 
         .critical-popup {
             position: absolute;
             font-weight: 900;
-            font-size: 1.7rem;
-            color: #f59e0b;
-            text-shadow: 0 0 10px #b45309, 2px 2px 0 #000;
+            font-size: 3.2rem;
+            color: #fbbf24;
+            text-shadow: 0 0 15px #d97706, 3px 3px 0 #000, -2px -2px 0 #000;
             pointer-events: none;
-            animation: popAndFade 1.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            animation: popBoom 1.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             z-index: 102;
+            white-space: nowrap;
+            left: 50%;
+            top: 20%;
+            transform: translate(-50%, -50%);
         }
 
         .weakness-popup {
             position: absolute;
             font-weight: 900;
-            font-size: 1.5rem;
+            font-size: 2.8rem;
             color: #38bdf8;
-            text-shadow: 0 0 8px #0284c7, 2px 2px 0 #000;
+            text-shadow: 0 0 15px #0284c7, 3px 3px 0 #000, -2px -2px 0 #000;
             pointer-events: none;
-            animation: popAndFade 1.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            animation: popBoom 1.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             z-index: 101;
+            white-space: nowrap;
+            left: 50%;
+            top: 10%;
+            transform: translate(-50%, -50%);
         }
 
         .heal-popup {
             position: absolute;
             font-weight: 900;
-            font-size: 1.8rem;
+            font-size: 3rem;
             color: #4ade80;
-            text-shadow: 0 0 6px #000, 2px 2px 0 #000;
+            text-shadow: 0 0 10px #000, 3px 3px 0 #000;
             pointer-events: none;
-            animation: popAndFade 1.1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            animation: popBoom 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             z-index: 100;
+            white-space: nowrap;
+            left: 50%;
+            top: 40%;
+            transform: translate(-50%, -50%);
         }
 
-        @keyframes popAndFade {
-            0% { opacity: 0; transform: translateY(0) scale(0.5); }
-            30% { opacity: 1; transform: translateY(-25px) scale(1.2); }
-            70% { opacity: 1; transform: translateY(-40px) scale(1); }
-            100% { opacity: 0; transform: translateY(-55px) scale(0.8); }
+        @keyframes popBoom {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(-6deg); }
+            25% { opacity: 1; transform: translate(-50%, -75%) scale(1.6) rotate(4deg); }
+            45% { transform: translate(-50%, -85%) scale(1.1) rotate(0deg); }
+            75% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -120%) scale(0.8); }
+        }
+
+        /* 被弾シェイク */
+        .hit-shake {
+            animation: hitShakeAnim 0.4s ease-in-out;
+        }
+
+        @keyframes hitShakeAnim {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-10px, 5px) rotate(-3deg); }
+            40% { transform: translate(10px, -5px) rotate(3deg); }
+            60% { transform: translate(-6px, 2px) rotate(-1deg); }
+            80% { transform: translate(4px, -1px) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
         }
 
         /* 原神公式風 ポスターカード */
@@ -153,9 +184,8 @@
             </button>
 
             <div class="flex items-center gap-1.5 bg-slate-800 border border-amber-500/40 px-2.5 py-1 rounded-full shadow">
-                <i class="fa-solid fa-gem text-cyan-400 text-xs animate-pulse"></i>
-                <span id="global-diamonds" class="text-xs sm:text-sm font-black text-amber-300 font-cinzel">10</span>
-            </div>
+            <i class="fa-solid fa-gem text-cyan-400 text-xs animate-pulse"></i>
+            <span id="global-diamonds" class="text-xs sm:text-sm font-black text-amber-300 font-cinzel">20</span>
         </div>
     </header>
 
@@ -269,8 +299,8 @@
                 <div class="w-full flex flex-col items-center">
                     <div class="flex flex-col md:flex-row items-center md:items-stretch justify-center gap-3 w-full max-w-4xl">
                         
-                        <!-- アクティブキャラ -->
-                        <div id="player-active-container" class="relative flex-shrink-0 cursor-pointer" onclick="window.openActiveCharPoster()" title="タップで立ち絵表示">
+                        <!-- アクティブキャラ (タップで技選択/立ち絵) -->
+                        <div id="player-active-container" class="relative flex-shrink-0 cursor-pointer" onclick="window.openActiveSkillModal()" title="タップで技を発動">
                             <div id="player-popup-anchor" class="absolute -top-8 left-1/2 -translate-x-1/2"></div>
                             
                             <div id="player-active-card" class="tcg-card card-5star w-48 sm:w-52 rounded-xl p-2.5 text-center shadow-xl relative overflow-hidden group">
@@ -281,8 +311,8 @@
 
                                 <div id="player-avatar" class="w-full h-32 sm:h-36 my-1 rounded-lg bg-slate-950 flex flex-col items-center justify-center border border-amber-500/30 relative overflow-hidden">
                                     <div id="player-img-container" class="w-full h-full flex items-center justify-center"></div>
-                                    <div class="absolute bottom-1 right-1 bg-black/70 text-amber-300 text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-500/40 z-10">
-                                        <i class="fa-solid fa-expand text-[8px]"></i> 立ち絵
+                                    <div class="absolute bottom-1 right-1 bg-black/80 text-amber-300 text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1 border border-amber-500/40 z-10 animate-pulse">
+                                        <i class="fa-solid fa-hand-pointer text-[9px]"></i> 技を選択
                                     </div>
                                 </div>
 
@@ -296,52 +326,35 @@
                         </div>
 
                         <!-- 設置バッジ表示枠 -->
-                        <div id="field-status-container" class="w-full md:w-48 bg-slate-900/90 border border-slate-700/80 p-2.5 rounded-xl shadow flex flex-col justify-start">
+                        <div id="field-status-container" class="w-full md:w-56 bg-slate-900/90 border border-slate-700/80 p-2.5 rounded-xl shadow flex flex-col justify-start">
                             <div class="text-[11px] font-bold text-amber-400 border-b border-slate-800 pb-1.5 mb-1.5 flex items-center justify-between">
-                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group"></i> 設置・バフ効果</span>
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group"></i> 設置・装備バフ効果</span>
+                                <span id="deck-cards-count" class="text-[10px] text-cyan-300 font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800">山札: 16枚</span>
                             </div>
                             <div id="field-badges-list" class="flex flex-col gap-1.5 flex-1 min-h-[50px] justify-center">
-                                <span class="text-[10px] text-slate-500 italic text-center">発動中の設置効果なし</span>
+                                <span class="text-[10px] text-slate-500 italic text-center">発動中の設置・装備効果なし</span>
                             </div>
-                        </div>
-
-                        <!-- スキルボタン -->
-                        <div id="skill-panel" class="flex flex-col gap-2 w-full md:w-64 bg-slate-900/90 border border-slate-700 p-2.5 rounded-xl shadow">
-                            <div class="text-[11px] font-bold text-slate-400 border-b border-slate-800 pb-1 flex justify-between items-center">
-                                <span><i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> 発動スキル</span>
-                                <div class="flex items-center gap-1 text-[10px]">
-                                    <span class="text-slate-400">爆発:</span>
-                                    <span id="burst-charge-dots" class="font-bold text-amber-300 font-mono">0/3</span>
-                                </div>
-                            </div>
-
-                            <button id="btn-skill-1" onclick="window.useSkill(0)" class="group bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg p-2 text-left transition flex justify-between items-center disabled:opacity-40">
-                                <div class="pr-1">
-                                    <div id="skill-1-name" class="font-bold text-xs sm:text-sm text-slate-100 group-hover:text-amber-300">通常攻撃・スキル</div>
-                                    <div id="skill-1-desc" class="text-[10px] text-slate-400 mt-0.5 leading-tight">基本攻撃 (爆発ゲージ+1)</div>
-                                </div>
-                                <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-slate-700 flex-shrink-0">
-                                    <span id="skill-1-dmg" class="text-xs font-black text-amber-400">60 Dmg</span>
-                                </div>
-                            </button>
-
-                            <button id="btn-skill-2" onclick="window.useSkill(1)" class="group bg-slate-800 hover:bg-slate-700 border border-amber-500/40 rounded-lg p-2 text-left transition flex justify-between items-center disabled:opacity-40">
-                                <div class="pr-1">
-                                    <div id="skill-2-name" class="font-bold text-xs sm:text-sm text-amber-200 group-hover:text-amber-100">元素爆発</div>
-                                    <div id="skill-2-desc" class="text-[10px] text-slate-400 mt-0.5 leading-tight">スキル3回後に発動可能</div>
-                                </div>
-                                <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-amber-500/50 flex-shrink-0">
-                                    <i class="fa-solid fa-bolt text-amber-400 text-xs"></i>
-                                    <span id="skill-2-dmg" class="text-xs font-extrabold text-amber-300">必殺</span>
-                                </div>
-                            </button>
                         </div>
 
                     </div>
 
+                    <!-- 手札カード一覧 (回復・武器アイテム等) -->
+                    <div class="mt-3 w-full max-w-2xl bg-slate-900/80 border border-slate-800 rounded-xl p-2">
+                        <div class="flex justify-between items-center mb-1 px-1">
+                            <span class="text-[11px] font-bold text-slate-300"><i class="fa-solid fa-cards text-amber-400"></i> 手札 (タップで使用)</span>
+                            <span id="hand-count-text" class="text-[10px] font-mono text-slate-400">0 / 7枚</span>
+                        </div>
+                        <div id="hand-cards-container" class="flex gap-2 overflow-x-auto py-1 min-h-[75px] items-center">
+                            <!-- JS生成 -->
+                        </div>
+                    </div>
+
                     <!-- 控えベンチキャラ -->
-                    <div class="mt-3 w-full max-w-2xl">
-                        <div class="text-[10px] font-bold text-slate-400 mb-1">控えキャラ (タップで出撃交代)</div>
+                    <div class="mt-2 w-full max-w-2xl">
+                        <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 mb-1">
+                            <span>控えキャラ (タップで交代 / 控えサポート行動)</span>
+                            <span id="swap-status-text" class="text-amber-400">今ターン交代可能 (1回/T)</span>
+                        </div>
                         <div id="bench-container" class="grid grid-cols-3 gap-2">
                             <!-- JS生成 -->
                         </div>
@@ -399,64 +412,70 @@
                         <span class="bg-slate-950 px-2 py-0.5 rounded-full text-[10px] text-cyan-300 border border-amber-400"><i class="fa-solid fa-gem"></i> 10</span>
                     </button>
                 </div>
-
-                <div id="gacha-result-container" class="w-full hidden">
-                    <h3 class="text-center font-bold text-amber-300 mb-3 text-sm sm:text-base">祈願結果</h3>
-                    <div id="gacha-cards-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 max-w-4xl mx-auto">
-                        <!-- JS生成 -->
-                    </div>
-                </div>
             </div>
         </section>
-
     </main>
 
-    <!-- アカウント連携モーダル -->
-    <div id="auth-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
-        <div class="bg-slate-900 border-2 border-indigo-500/60 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl relative">
-            <button onclick="window.closeAuthModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-950 border border-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">
+    <!-- 技選択モーダル -->
+    <div id="skill-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-5 max-w-sm w-full text-center shadow-2xl relative">
+            <button onclick="window.closeSkillModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-950 border border-slate-700 w-7 h-7 rounded-full flex items-center justify-center">
                 <i class="fa-solid fa-xmark"></i>
             </button>
+            <h3 id="skill-modal-char-name" class="text-lg font-black text-amber-300 mb-1">胡桃 の技を選択</h3>
+            <div class="text-[11px] text-slate-400 mb-4">発動するスキルを選んでください</div>
 
-            <div class="text-center mb-4">
-                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-indigo-950 border border-indigo-400 flex items-center justify-center text-indigo-400 text-xl shadow">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                </div>
-                <h2 class="text-lg font-black text-amber-300 font-cinzel">アカウント連携・クラウド保存</h2>
-                <p class="text-xs text-slate-400 mt-0.5">アップロード画像や進行状況をクラウドにバックアップ</p>
-            </div>
-
-            <div id="auth-logged-in-view" class="hidden text-center space-y-3">
-                <div class="bg-slate-950 p-3 rounded-xl border border-indigo-500/30">
-                    <div class="text-xs text-slate-400">ログイン中アカウント</div>
-                    <div id="auth-user-email-display" class="font-bold text-indigo-300 text-sm mt-1 truncate">test@example.com</div>
-                    <div class="text-[10px] text-emerald-400 mt-1 flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-circle-check"></i> 同期完了
+            <div class="flex flex-col gap-3">
+                <button id="btn-modal-skill-1" onclick="window.executeActiveSkill(0)" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-3 text-left transition flex justify-between items-center">
+                    <div>
+                        <div id="modal-skill-1-name" class="font-bold text-sm text-slate-100">通常攻撃・スキル</div>
+                        <div id="modal-skill-1-desc" class="text-[10px] text-slate-400 mt-0.5">基本ダメージを与えます</div>
                     </div>
-                </div>
-                <button onclick="window.handleAuthLogout()" class="w-full bg-rose-950/80 hover:bg-rose-900 border border-rose-500 text-rose-200 font-bold py-2 rounded-xl text-xs transition">
-                    ログアウト
+                    <span id="modal-skill-1-dmg" class="text-xs font-black text-amber-400 bg-slate-950 px-2 py-1 rounded border border-slate-700">60 Dmg</span>
+                </button>
+
+                <button id="btn-modal-skill-2" onclick="window.executeActiveSkill(1)" class="bg-slate-800 hover:bg-slate-700 border border-amber-500/50 rounded-xl p-3 text-left transition flex justify-between items-center disabled:opacity-40">
+                    <div>
+                        <div id="modal-skill-2-name" class="font-bold text-sm text-amber-300">元素爆発</div>
+                        <div id="modal-skill-2-desc" class="text-[10px] text-slate-400 mt-0.5">強力な必殺技を発動</div>
+                    </div>
+                    <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-amber-500/50">
+                        <i class="fa-solid fa-bolt text-amber-400 text-xs"></i>
+                        <span id="modal-skill-2-charge" class="text-xs font-bold text-amber-300">0/3</span>
+                    </div>
                 </button>
             </div>
+            
+            <div class="mt-4 border-t border-slate-800 pt-3">
+                <button onclick="window.openActiveCharPoster()" class="text-xs text-amber-400 font-bold hover:underline flex items-center justify-center gap-1 mx-auto">
+                    <i class="fa-solid fa-image"></i> 立ち絵ポスターを表示
+                </button>
+            </div>
+        </div>
+    </div>
 
-            <div id="auth-form-view" class="space-y-4">
-                <div class="flex border-b border-slate-800">
-                    <button id="auth-tab-login" onclick="window.switchAuthTab('login')" class="flex-1 py-2 text-xs font-bold border-b-2 border-indigo-400 text-indigo-300">ログイン</button>
-                    <button id="auth-tab-register" onclick="window.switchAuthTab('register')" class="flex-1 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200">新規登録</button>
-                </div>
-                <div id="auth-msg-box" class="hidden text-xs p-2.5 rounded-lg border text-center"></div>
-                <div class="space-y-3">
+    <!-- 控えキャラ行動モーダル -->
+    <div id="bench-action-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-slate-900 border-2 border-indigo-500/60 rounded-2xl p-5 max-w-sm w-full text-center shadow-2xl relative">
+            <button onclick="window.closeBenchModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-950 border border-slate-700 w-7 h-7 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="bench-modal-name" class="text-lg font-black text-indigo-300 mb-1">リネット の行動選択</h3>
+            <div class="text-[11px] text-slate-400 mb-4">控えキャラクターの行動を選択してください</div>
+
+            <div class="flex flex-col gap-3">
+                <button id="btn-bench-swap" onclick="window.confirmBenchSwap()" class="bg-gradient-to-r from-indigo-700 to-indigo-600 hover:from-indigo-600 border border-indigo-400 text-white font-bold p-3 rounded-xl text-xs text-left shadow transition flex items-center justify-between">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">メールアドレス</label>
-                        <input type="email" id="auth-email-input" placeholder="example@email.com" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-400">
+                        <div class="font-bold text-sm"><i class="fa-solid fa-right-left"></i> バトル場に出撃（交代）</div>
+                        <div class="text-[10px] text-indigo-200 mt-0.5">※1ターンに1回のみ実行可能です</div>
                     </div>
+                </button>
+
+                <button id="btn-bench-support-skill" onclick="window.confirmBenchSupportSkill()" class="bg-slate-800 hover:bg-slate-700 border border-amber-500/40 text-amber-200 font-bold p-3 rounded-xl text-xs text-left transition flex items-center justify-between">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">パスワード (6文字以上)</label>
-                        <input type="password" id="auth-password-input" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-400">
+                        <div class="font-bold text-sm text-amber-300"><i class="fa-solid fa-magic"></i> 控えからサポート技を発動</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">敵に直接ダメージは与えず設置効果（デコイ・回復・陣）のみ獲得！</div>
                     </div>
-                </div>
-                <button id="auth-submit-btn" onclick="window.handleAuthSubmit()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs shadow transition active:scale-95">
-                    ログインする
                 </button>
             </div>
         </div>
@@ -476,6 +495,18 @@
         </div>
     </div>
 
+    <!-- ガチャ結果モーダル -->
+    <div id="gacha-results-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-slate-900 border-2 border-purple-500/60 rounded-2xl p-5 max-w-xl w-full text-center shadow-2xl relative my-auto max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-black text-amber-300 mb-1">祈願結果</h3>
+            <p class="text-xs text-slate-400 mb-4">獲得したカード・アイテム</p>
+            <div id="gacha-results-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-5 max-h-96 overflow-y-auto p-1"></div>
+            <button onclick="window.closeGachaResults()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black py-2.5 rounded-xl shadow transition active:scale-95 text-sm">
+                確認
+            </button>
+        </div>
+    </div>
+
     <!-- 原神公式風 ポスターカードモーダル -->
     <div id="poster-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 overflow-y-auto hidden">
         <div class="genshin-poster-card w-full max-w-md rounded-2xl p-4 text-slate-100 flex flex-col justify-between relative shadow-2xl my-auto max-h-[94vh] overflow-y-auto">
@@ -490,9 +521,6 @@
 
             <div id="poster-art-box" class="relative w-full h-72 sm:h-80 my-2 rounded-xl border border-amber-500/30 overflow-hidden flex items-center justify-center poster-pattern-bg">
                 <div id="poster-elem-bg" class="absolute inset-0 bg-gradient-to-b from-rose-950/60 via-slate-900/90 to-slate-950"></div>
-                <div class="absolute w-48 h-48 rounded-full border-2 border-amber-500/30 flex items-center justify-center opacity-30 animate-spin" style="animation-duration: 40s;">
-                    <i id="poster-elem-icon" class="fa-solid fa-fire text-8xl text-amber-400"></i>
-                </div>
                 <div id="poster-char-art-container" class="relative z-10 w-full h-full flex items-center justify-center p-2"></div>
                 <div id="poster-rarity-badge" class="absolute top-2 left-2 z-20 bg-amber-950/80 border border-amber-400 text-amber-300 font-black text-xs px-2.5 py-0.5 rounded-full shadow">★5</div>
             </div>
@@ -520,10 +548,28 @@
             </div>
 
             <div class="mt-3 flex gap-2">
-                <button id="btn-poster-toggle-party" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-2 rounded-xl text-xs shadow flex items-center justify-center gap-1.5">
+                <button onclick="window.togglePosterCharParty()" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-2 rounded-xl text-xs shadow flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-users"></i> <span id="poster-party-btn-text">編成に追加/解除</span>
                 </button>
                 <button onclick="window.closePosterModal()" class="bg-slate-800 text-slate-300 font-bold px-4 py-2 rounded-xl text-xs">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- アカウントモーダル -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-slate-900 border-2 border-indigo-500/60 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl relative">
+            <button onclick="window.closeAuthModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-950 border border-slate-700 w-7 h-7 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-lg font-black text-indigo-300 mb-1">クラウド保存・ログイン</h3>
+            <p class="text-xs text-slate-400 mb-4">メールアドレスで端末間同期が可能です</p>
+            <div class="space-y-3">
+                <input type="email" id="auth-email" placeholder="メールアドレス" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                <input type="password" id="auth-password" placeholder="パスワード(6文字以上)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                <button onclick="window.closeAuthModal()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-2.5 rounded-xl text-xs shadow">
+                    ログイン / 保存完了
+                </button>
             </div>
         </div>
     </div>
@@ -532,94 +578,73 @@
     <script>
         // 1. グローバル STATE 定義
         window.STATE = {
-            diamonds: 10,
+            diamonds: 20, // 初回20連可能
             unlockedCharIds: ['hutao', 'bennett', 'lynette', 'traveler'],
             parties: [['hutao', 'bennett', 'lynette', 'traveler'], ['hutao'], ['bennett'], ['lynette'], ['traveler']],
             selectedPartyIdx: 0,
             editingPartyIdx: 0,
+            customImages: {},
             battle: {
                 actionsLeft: 5,
                 currentWave: 1,
                 totalWaves: 4,
                 activePlayerIdx: 0,
                 isPlayerTurn: true,
+                swappedThisTurn: false,
                 partyData: [],
                 enemy: null,
-                fieldStatuses: [] // { id, name, turns, hp, type }
+                fieldStatuses: [],
+                deck: [],
+                hand: []
             }
         };
 
-        // 内蔵SVG描画関数
-        window.createBuiltInSvg = function(charId) {
-            if (charId === 'hutao') {
-                return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full max-h-full object-contain">
-                    <defs><radialGradient id="htGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ef4444" stop-opacity="0.7"/><stop offset="100%" stop-color="#180808" stop-opacity="0"/></radialGradient></defs>
-                    <rect width="200" height="240" fill="#140808" rx="12"/><circle cx="100" cy="110" r="75" fill="url(#htGlow)"/>
-                    <path d="M 35 75 Q 100 40 165 75 L 180 90 Q 100 65 20 90 Z" fill="#2b1a1a" stroke="#d4af37" stroke-width="2.5"/>
-                    <circle cx="65" cy="72" r="11" fill="#dc2626"/><circle cx="65" cy="72" r="4" fill="#fef08a"/>
-                    <ellipse cx="100" cy="115" rx="42" ry="48" fill="#fde8d7"/>
-                    <ellipse cx="78" cy="115" rx="8" ry="11" fill="#dc2626"/><ellipse cx="122" cy="115" rx="8" ry="11" fill="#dc2626"/>
-                </svg>`;
-            } else if (charId === 'lynette') {
-                return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full max-h-full object-contain">
-                    <defs><radialGradient id="lynGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.7"/><stop offset="100%" stop-color="#042f2e" stop-opacity="0"/></radialGradient></defs>
-                    <rect width="200" height="240" fill="#061c19" rx="12"/><circle cx="100" cy="110" r="75" fill="url(#lynGlow)"/>
-                    <polygon points="45,75 25,25 75,55" fill="#d1d5db" stroke="#9ca3af" stroke-width="2"/>
-                    <polygon points="155,75 175,25 125,55" fill="#d1d5db" stroke="#9ca3af" stroke-width="2"/>
-                    <ellipse cx="100" cy="115" rx="40" ry="44" fill="#fde8d7"/>
-                    <ellipse cx="78" cy="115" rx="7" ry="10" fill="#a855f7"/><ellipse cx="122" cy="115" rx="7" ry="10" fill="#a855f7"/>
-                </svg>`;
-            }
-            return `<div class="w-full h-full flex flex-col items-center justify-center text-amber-300"><i class="fa-solid fa-user-ninja text-6xl mb-1"></i><span class="text-[10px] font-bold">GENSHIN ART</span></div>`;
-        };
-
-        window.CHARACTER_DB = [
-            { id: 'hutao', name: '胡桃', romaji: 'HU TAO', rarity: 5, element: '炎', elementBadge: 'bg-rose-950 text-rose-300 border-rose-500', maxHp: 120, vision: '神の目 - 炎', quote: '「掴み所がない人物だ...」', quoteAuthor: '—— 鍾離', skills: [{ name: '蝶引来生', desc: '炎属性攻撃 (冥蝶状態 3T火力+25)', type: 'atkBuff' }, { name: '安神の法', desc: '巨大炎爆破 & HP30回復', type: 'healBurst' }] },
-            { id: 'lynette', name: 'リネット', romaji: 'LYNETTE', rarity: 4, element: '風', elementBadge: 'bg-emerald-950 text-emerald-300 border-emerald-500', maxHp: 90, vision: '神の目 - 風', quote: '「口数の少ないマジシャン助手...」', quoteAuthor: '—— リネ', skills: [{ name: 'フェイント・ハザード', desc: '風刺突 & 猫デコイ(HP30)召喚', type: 'decoy' }, { name: 'キャット・トリック', desc: '広域風攻撃 & デコイ(HP50)召喚', type: 'decoyMax' }] },
-            { id: 'bennett', name: 'ベネット', romaji: 'BENNETT', rarity: 4, element: '炎', elementBadge: 'bg-rose-950 text-rose-300 border-rose-500', maxHp: 100, vision: '神の目 - 炎', quote: '「世界一不運な冒険者...」', quoteAuthor: '—— キャサリン', skills: [{ name: '情熱過剰', desc: '炎突き出し攻撃' }, { name: '素晴らしい旅', desc: '陣形展開 (3T 毎T回復15 & 全火力+20)', type: 'field' }] },
-            { id: 'traveler', name: '旅人', romaji: 'TRAVELER', rarity: 4, element: '風', elementBadge: 'bg-teal-950 text-teal-300 border-teal-500', maxHp: 100, vision: '神の目 - 風', quote: '「七神を巡る旅を続ける者...」', quoteAuthor: '—— パイモン', skills: [{ name: '風渦剣', desc: '風旋回斬り' }, { name: '風神のまにまに', desc: '巨大竜巻追撃' }] },
-            { id: 'zhongli', name: '鍾離', romaji: 'ZHONGLI', rarity: 5, element: '岩', elementBadge: 'bg-amber-950 text-amber-300 border-amber-500', maxHp: 140, vision: '神の目 - 岩', quote: '「契約を重んじる往生堂の客卿...」', quoteAuthor: '—— 胡桃', skills: [{ name: '地心', desc: '岩柱生成 & 玉璋シールド(HP50)', type: 'shield' }, { name: '天動', desc: '巨大隕石落下 (大ダメージ)', type: 'burstDmg' }] }
-        ];
-
-        window.TRASH_ITEMS = [
-            { name: 'キャベツ', rarity: 3, icon: 'fa-seedling' },
-            { name: '鉄塊', rarity: 3, icon: 'fa-cube' },
-            { name: '理屈責め', rarity: 3, icon: 'fa-hammer' }
-        ];
-
-        window.ENEMIES_DB = [
-            { name: 'ヒルチャール Lv.1', level: 'Lv.1', element: '無元素', weaknesses: [], baseHp: 80, icon: 'fa-mask', skill: { name: '棍棒打', damage: 15 } },
-            { name: 'ヒルチャール Lv.2', level: 'Lv.2', element: '無元素', weaknesses: [], baseHp: 160, icon: 'fa-mask', skill: { name: '突進頭突き', damage: 25 } },
-            { name: 'アビスの魔術師・水', level: 'Lv.3', element: '水元素', weaknesses: ['草', '雷'], baseHp: 150, icon: 'fa-hat-wizard', skill: { name: '水弾照射', damage: 30 } },
-            { name: 'アビスの魔術師・氷', level: 'Lv.3', element: '氷元素', weaknesses: ['炎', '風'], baseHp: 150, icon: 'fa-snowflake', skill: { name: '氷錐連続射撃', damage: 30 } },
-            { name: 'アビスの魔術師・炎', level: 'Lv.3', element: '炎元素', weaknesses: ['水', '氷'], baseHp: 150, icon: 'fa-fire', skill: { name: '暗炎弾爆破', damage: 35 } },
-            { name: '野伏衆・侍', level: 'Lv.4', element: '雷元素', weaknesses: ['雷', '炎'], baseHp: 250, icon: 'fa-user-ninja', skill: { name: '居合斬り', damage: 40 } },
-            { name: '【BOSS】魔偶剣鬼', level: 'BOSS', element: '風・氷', weaknesses: ['炎'], baseHp: 800, icon: 'fa-ghost', skill: { name: '孤影斬', damage: 55 } }
-        ];
-
+        // サウンドエフェクト再生
         window.AudioFX = {
             ctx: null,
             init() {
-                if (!this.ctx) {
-                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                    if (AudioCtx) this.ctx = new AudioCtx();
+                if (!this.ctx && typeof window.AudioContext !== 'undefined') {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 }
             },
             playHit() {
                 try {
-                    this.init(); if (!this.ctx) return;
-                    const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(160, this.ctx.currentTime);
-                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    this.init();
+                    if (!this.ctx) return;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
                     osc.connect(gain); gain.connect(this.ctx.destination);
-                    osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+                } catch(e){}
+            },
+            playGacha() {
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, this.ctx.currentTime);
+                    osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.2);
+                    osc.frequency.setValueAtTime(1046.50, this.ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.5);
                 } catch(e){}
             }
         };
 
-        /* UIナビゲーション & モーダル */
+        // UI ページ切替・メニュー制御
         window.toggleMenu = function() {
-            const drawer = document.getElementById('nav-drawer'), content = document.getElementById('drawer-content');
+            const drawer = document.getElementById('nav-drawer');
+            const content = document.getElementById('drawer-content');
             if (drawer.classList.contains('opacity-0')) {
                 drawer.classList.remove('opacity-0', 'pointer-events-none');
                 content.classList.remove('-translate-x-full');
@@ -630,107 +655,354 @@
         };
 
         window.switchPage = function(pageId) {
-            document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
-            const target = document.getElementById(`page-${pageId}`);
-            if (target) { target.classList.remove('hidden'); target.classList.add('flex'); }
-            window.toggleMenu();
+            document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
             if (pageId === 'party') window.renderPartyPage();
-            if (pageId === 'battle') window.updateBattleUI();
+            window.toggleMenu();
         };
 
         window.openAuthModal = function() { document.getElementById('auth-modal').classList.remove('hidden'); };
         window.closeAuthModal = function() { document.getElementById('auth-modal').classList.add('hidden'); };
 
-        window.switchAuthTab = function(tab) {
-            window.currentAuthTab = tab;
-            const loginBtn = document.getElementById('auth-tab-login'), regBtn = document.getElementById('auth-tab-register'), submitBtn = document.getElementById('auth-submit-btn');
-            if (tab === 'login') {
-                loginBtn.className = "flex-1 py-2 text-xs font-bold border-b-2 border-indigo-400 text-indigo-300";
-                regBtn.className = "flex-1 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200";
-                submitBtn.innerText = "ログインする";
-            } else {
-                regBtn.className = "flex-1 py-2 text-xs font-bold border-b-2 border-indigo-400 text-indigo-300";
-                loginBtn.className = "flex-1 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200";
-                submitBtn.innerText = "新規アカウント作成";
+        // 全主要キャラデータベース
+        window.CHARACTER_DB = [
+            { id: 'hutao', name: '胡桃', romaji: 'HU TAO', rarity: 5, element: '炎', elementBadge: 'bg-rose-950 text-rose-300 border-rose-500', maxHp: 120, vision: '神の目 - 炎', quote: '「掴み所がない人物だ...」', quoteAuthor: '—— 鍾離', skills: [{ name: '蝶引来生', desc: '炎属性攻撃 (冥蝶状態 3T火力+25)', type: 'atkBuff' }, { name: '安神の法', desc: '巨大炎爆破 & HP30回復', type: 'healBurst' }] },
+            { id: 'lynette', name: 'リネット', romaji: 'LYNETTE', rarity: 4, element: '風', elementBadge: 'bg-emerald-950 text-emerald-300 border-emerald-500', maxHp: 90, vision: '神の目 - 風', quote: '「口数の少ないマジシャン助手...」', quoteAuthor: '—— リネ', skills: [{ name: 'フェイント・ハザード', desc: '風刺突 & 猫デコイ(HP30)召喚', type: 'decoy' }, { name: 'キャット・トリック', desc: '広域風攻撃 & デコイ(HP50)召喚', type: 'decoyMax' }] },
+            { id: 'bennett', name: 'ベネット', romaji: 'BENNETT', rarity: 4, element: '炎', elementBadge: 'bg-rose-950 text-rose-300 border-rose-500', maxHp: 100, vision: '神の目 - 炎', quote: '「世界一不運な冒険者...」', quoteAuthor: '—— キャサリン', skills: [{ name: '情熱過剰', desc: '炎突き出し攻撃' }, { name: '素晴らしい旅', desc: '陣形展開 (3T 毎T回復15 & 全火力+20)', type: 'field' }] },
+            { id: 'traveler', name: '旅人', romaji: 'TRAVELER', rarity: 4, element: '風', elementBadge: 'bg-teal-950 text-teal-300 border-teal-500', maxHp: 100, vision: '神の目 - 風', quote: '「七神を巡る旅を続ける者...」', quoteAuthor: '—— パイモン', skills: [{ name: '風渦剣', desc: '風旋回斬り' }, { name: '風神のまにまに', desc: '巨大竜巻追撃' }] },
+            { id: 'zhongli', name: '鍾離', romaji: 'ZHONGLI', rarity: 5, element: '岩', elementBadge: 'bg-amber-950 text-amber-300 border-amber-500', maxHp: 140, vision: '神の目 - 岩', quote: '「契約を重んじる往生堂の客卿...」', quoteAuthor: '—— 胡桃', skills: [{ name: '地心', desc: '岩柱生成 & 玉璋シールド(HP50)', type: 'shield' }, { name: '天動', desc: '巨大隕石落下 (大ダメージ)', type: 'burstDmg' }] },
+            { id: 'raiden', name: '雷電将軍', romaji: 'RAIDEN SHOGUN', rarity: 5, element: '雷', elementBadge: 'bg-purple-950 text-purple-300 border-purple-500', maxHp: 130, vision: '神の目 - 雷', quote: '「浮世の泡影、滅切り...」', quoteAuthor: '—— 八重神子', skills: [{ name: '神鳴り', desc: '雷斬撃 (爆発チャージ加速)' }, { name: '無想の一太刀', desc: '雷光一閃 (極大ダメージ)', type: 'burstDmg' }] },
+            { id: 'nahida', name: 'ナヒーダ', romaji: 'NAHIDA', rarity: 5, element: '草', elementBadge: 'bg-lime-950 text-lime-300 border-lime-500', maxHp: 100, vision: '神の目 - 草', quote: '「知恵の神、クラクサナリデビ...」', quoteAuthor: '—— アルハイゼン', skills: [{ name: '所作・所問', desc: '草元素繋ぎ攻撃' }, { name: '心景夢想', desc: '摩耶の宮殿展開 (火力全強化)', type: 'atkBuff' }] },
+            { id: 'furina', name: 'フリーナ', romaji: 'FURINA', rarity: 5, element: '水', elementBadge: 'bg-sky-950 text-sky-300 border-sky-500', maxHp: 110, vision: '神の目 - 水', quote: '「審判の舞台を統べるスター...」', quoteAuthor: '—— ヌヴィレット', skills: [{ name: 'サロン・ソロイスト', desc: 'サロンメンバー召喚' }, { name: '万民の歓喜', desc: 'テンション爆破 (大回復&大火力バフ)', type: 'healBurst' }] },
+            { id: 'ganyu', name: '甘雨', romaji: 'GANYU', rarity: 5, element: '氷', elementBadge: 'bg-cyan-950 text-cyan-300 border-cyan-500', maxHp: 100, vision: '神の目 - 氷', quote: '「月海亭の甘雨、仕事の依頼は...」', quoteAuthor: '—— 刻晴', skills: [{ name: '霜華の矢', desc: '氷重撃 (高威力攻撃)' }, { name: '降衆天華', desc: '氷霊珠召喚 (毎ターン氷ダメージ)' }] },
+            { id: 'kazuha', name: '楓原万葉', romaji: 'KAEDEHARA KAZUHA', rarity: 5, element: '風', elementBadge: 'bg-teal-950 text-teal-300 border-teal-500', maxHp: 110, vision: '神の目 - 風', quote: '「風の赴くままに...」', quoteAuthor: '—— 北斗', skills: [{ name: '千早振る', desc: '風吸引攻撃' }, { name: '萬葉の一瞬', desc: '流々風々領域展開', type: 'field' }] }
+        ];
+
+        window.TRASH_ITEMS = [
+            { name: 'キャベツ', icon: 'fa-seedling', rarity: 3 },
+            { name: '鉄塊', icon: 'fa-cube', rarity: 3 },
+            { name: 'テイワット風目玉焼き', icon: 'fa-egg', rarity: 3 },
+            { name: '★3 旅人の羽', icon: 'fa-feather', rarity: 3 },
+            { name: '仕上げ用魔術鉱', icon: 'fa-gem', rarity: 3 }
+        ];
+
+        // アイテム・装備カード定義（20枚デッキ用）
+        window.ITEM_CARDS_DB = [
+            { id: 'sweet_flower', name: 'スイートフラワー焼き', type: 'heal', value: 30, icon: 'fa-drumstick-bite', desc: 'HPを30回復' },
+            { id: 'wolf_gravestone', name: '狼の末路(大剣)', type: 'weapon', value: 20, icon: 'fa-shield-halberd', desc: '攻撃力+20' },
+            { id: 'artifact_feather', name: '死の羽(聖遺物)', type: 'weapon', value: 15, icon: 'fa-feather', desc: '攻撃力+15' },
+            { id: 'crown_of_insight', name: '知恵の冠', type: 'burst', value: 1, icon: 'fa-crown', desc: '爆発ゲージ+1' }
+        ];
+
+        window.getCharVisualHtml = function(charId, heightClass = 'h-32') {
+            if (window.STATE.customImages && window.STATE.customImages[charId]) {
+                return `<img src="${window.STATE.customImages[charId]}" class="object-cover w-full ${heightClass} rounded-lg" alt="立ち絵" />`;
+            }
+            const c = window.CHARACTER_DB.find(x => x.id === charId);
+            if (!c) return `<i class="fa-solid fa-user text-3xl text-slate-400"></i>`;
+            
+            let bg = 'from-slate-800 to-slate-900';
+            let icon = 'fa-user-shield';
+            let iconColor = 'text-amber-400';
+
+            if (c.element === '炎') { bg = 'from-rose-950 to-orange-950'; icon = 'fa-fire'; iconColor = 'text-rose-400'; }
+            else if (c.element === '風') { bg = 'from-emerald-950 to-teal-950'; icon = 'fa-wind'; iconColor = 'text-emerald-300'; }
+            else if (c.element === '岩') { bg = 'from-amber-950 to-yellow-950'; icon = 'fa-mountain'; iconColor = 'text-amber-400'; }
+            else if (c.element === '雷') { bg = 'from-purple-950 to-indigo-950'; icon = 'fa-bolt'; iconColor = 'text-purple-300'; }
+            else if (c.element === '草') { bg = 'from-lime-950 to-green-950'; icon = 'fa-leaf'; iconColor = 'text-lime-300'; }
+            else if (c.element === '水') { bg = 'from-sky-950 to-blue-950'; icon = 'fa-droplet'; iconColor = 'text-sky-300'; }
+            else if (c.element === '氷') { bg = 'from-cyan-950 to-blue-950'; icon = 'fa-snowflake'; iconColor = 'text-cyan-300'; }
+
+            return `
+                <div class="w-full ${heightClass} rounded-lg bg-gradient-to-b ${bg} border border-white/10 flex flex-col items-center justify-center relative p-2 shadow-inner">
+                    <i class="fa-solid ${icon} text-4xl ${iconColor} drop-shadow-md"></i>
+                    <span class="text-[10px] font-black text-amber-200 mt-1 tracking-widest">${c.romaji}</span>
+                </div>
+            `;
+        };
+
+        // ガチャ祈願処理
+        window.pullGacha = function(count) {
+            if (window.STATE.diamonds < count) {
+                window.showModal('ダイヤ不足', `ガチャを引くにはダイヤが${count}個必要です！対戦に勝利してダイヤを獲得しましょう。`, 'fa-gem text-cyan-400');
+                return;
+            }
+
+            window.STATE.diamonds -= count;
+            document.getElementById('global-diamonds').innerText = window.STATE.diamonds;
+            window.AudioFX.playGacha();
+
+            const results = [];
+            for (let i = 0; i < count; i++) {
+                const rand = Math.random() * 100;
+                if (rand < 3) {
+                    const fives = window.CHARACTER_DB.filter(c => c.rarity === 5);
+                    const pick = fives[Math.floor(Math.random() * fives.length)];
+                    if (!window.STATE.unlockedCharIds.includes(pick.id)) window.STATE.unlockedCharIds.push(pick.id);
+                    results.push({ ...pick, itemType: 'char' });
+                } else if (rand < 18) {
+                    const fours = window.CHARACTER_DB.filter(c => c.rarity === 4);
+                    const pick = fours[Math.floor(Math.random() * fours.length)];
+                    if (!window.STATE.unlockedCharIds.includes(pick.id)) window.STATE.unlockedCharIds.push(pick.id);
+                    results.push({ ...pick, itemType: 'char' });
+                } else {
+                    const pick = window.TRASH_ITEMS[Math.floor(Math.random() * window.TRASH_ITEMS.length)];
+                    results.push({ ...pick, itemType: 'trash' });
+                }
+            }
+
+            window.renderGachaResults(results);
+        };
+
+        window.renderGachaResults = function(results) {
+            const container = document.getElementById('gacha-results-grid');
+            container.innerHTML = '';
+            results.forEach(res => {
+                const card = document.createElement('div');
+                if (res.itemType === 'char') {
+                    card.className = `tcg-card ${res.rarity === 5 ? 'card-5star' : 'card-4star'} rounded-xl p-2 text-center flex flex-col items-center justify-between h-36 relative overflow-hidden`;
+                    card.innerHTML = `
+                        <span class="text-[9px] text-amber-300 font-bold self-start">★${res.rarity}</span>
+                        <div class="w-full h-16 my-1 flex items-center justify-center">${window.getCharVisualHtml(res.id, 'h-16')}</div>
+                        <div class="font-extrabold text-xs text-amber-200 truncate w-full">${res.name}</div>
+                    `;
+                } else {
+                    card.className = 'tcg-card card-trash rounded-xl p-2 text-center flex flex-col items-center justify-between h-36 relative';
+                    card.innerHTML = `
+                        <span class="text-[9px] text-slate-400 font-bold self-start">★3</span>
+                        <i class="fa-solid ${res.icon} text-3xl text-slate-400 my-auto"></i>
+                        <div class="font-bold text-xs text-slate-300 truncate w-full">${res.name}</div>
+                    `;
+                }
+                container.appendChild(card);
+            });
+            document.getElementById('gacha-results-modal').classList.remove('hidden');
+        };
+
+        window.closeGachaResults = function() {
+            document.getElementById('gacha-results-modal').classList.add('hidden');
+            window.renderPartyPage();
+        };
+
+        // デッキ & 手札ドロー
+        window.buildDeck = function() {
+            const deck = [];
+            for (let i = 0; i < 16; i++) {
+                const item = window.ITEM_CARDS_DB[i % window.ITEM_CARDS_DB.length];
+                deck.push({ ...item, uid: 'item_' + i + '_' + Math.random().toString(36).substr(2, 5) });
+            }
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        };
+
+        window.drawCards = function(count) {
+            const b = window.STATE.battle;
+            for (let i = 0; i < count; i++) {
+                if (b.deck.length > 0 && b.hand.length < 7) {
+                    b.hand.push(b.deck.pop());
+                }
             }
         };
 
-        let currentPosterCharId = null;
-        window.showCharacterPoster = function(charId) {
-            const char = window.CHARACTER_DB.find(c => c.id === charId);
+        window.useHandCard = function(handIdx) {
+            const b = window.STATE.battle;
+            if (!b.isPlayerTurn || b.actionsLeft <= 0) return;
+            const item = b.hand[handIdx];
+            if (!item) return;
+
+            const activeChar = b.partyData[b.activePlayerIdx];
+
+            if (item.type === 'heal') {
+                activeChar.hp = Math.min(activeChar.maxHp, activeChar.hp + item.value);
+                window.showPopup('player-popup-anchor', `+${item.value}`, 'heal');
+            } else if (item.type === 'weapon') {
+                b.fieldStatuses.push({ id: item.uid, name: item.name, value: item.value, type: 'atkBuff' });
+            } else if (item.type === 'burst') {
+                activeChar.burstCharge = Math.min(3, activeChar.burstCharge + 1);
+            }
+
+            b.hand.splice(handIdx, 1);
+            b.actionsLeft--;
+            window.AudioFX.playHit();
+            window.updateBattleUI();
+        };
+
+        // スキル & バトル処理
+        let selectedBenchIdx = null;
+
+        window.openActiveSkillModal = function() {
+            const b = window.STATE.battle;
+            if (!b.isPlayerTurn || b.actionsLeft <= 0) return;
+            const char = b.partyData[b.activePlayerIdx];
             if (!char) return;
-            currentPosterCharId = charId;
-            document.getElementById('poster-char-name').innerText = char.name;
-            document.getElementById('poster-char-romaji').innerText = char.romaji;
-            document.getElementById('poster-rarity-badge').innerText = `★${char.rarity}`;
-            document.getElementById('poster-vision-badge').innerText = char.vision;
-            document.getElementById('poster-char-quote').innerText = char.quote;
-            document.getElementById('poster-char-author').innerText = char.quoteAuthor;
 
-            document.getElementById('poster-char-art-container').innerHTML = window.getCharVisualHtml(char.id, 'h-full');
-            window.updatePosterPartyButton();
-            document.getElementById('poster-modal').classList.remove('hidden');
+            document.getElementById('skill-modal-char-name').innerText = `${char.name} の技を選択`;
+            document.getElementById('modal-skill-1-name').innerText = char.skills[0].name;
+            document.getElementById('modal-skill-1-desc').innerText = char.skills[0].desc;
+            document.getElementById('modal-skill-1-dmg').innerText = `${char.rarity === 5 ? 60 : 40} Dmg`;
+
+            document.getElementById('modal-skill-2-name').innerText = char.skills[1].name;
+            document.getElementById('modal-skill-2-desc').innerText = char.skills[1].desc;
+            document.getElementById('modal-skill-2-charge').innerText = `${char.burstCharge}/3`;
+            document.getElementById('btn-modal-skill-2').disabled = char.burstCharge < 3;
+
+            document.getElementById('skill-modal').classList.remove('hidden');
         };
 
-        window.updatePosterPartyButton = function() {
-            if (!currentPosterCharId) return;
-            const party = window.STATE.parties[window.STATE.editingPartyIdx] || [];
-            const inParty = party.includes(currentPosterCharId);
-            const btn = document.getElementById('btn-poster-toggle-party');
-            const btnText = document.getElementById('poster-party-btn-text');
-            if (inParty) {
-                btn.className = 'flex-1 bg-gradient-to-r from-rose-600 to-red-600 text-white font-bold py-2 rounded-xl text-xs shadow flex items-center justify-center gap-1.5';
-                btnText.innerText = 'Party編成から外す';
-            } else {
-                btn.className = 'flex-1 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black py-2 rounded-xl text-xs shadow flex items-center justify-center gap-1.5';
-                btnText.innerText = 'Party編成に追加';
+        window.closeSkillModal = function() { document.getElementById('skill-modal').classList.add('hidden'); };
+
+        window.executeActiveSkill = function(skillIdx) {
+            window.closeSkillModal();
+            window.useSkill(skillIdx);
+        };
+
+        window.openBenchModal = function(idx) {
+            const b = window.STATE.battle;
+            if (!b.isPlayerTurn || b.actionsLeft <= 0) return;
+            const char = b.partyData[idx];
+            if (!char || char.hp <= 0) return;
+
+            selectedBenchIdx = idx;
+            document.getElementById('bench-modal-name').innerText = `${char.name} の行動選択`;
+            document.getElementById('btn-bench-swap').disabled = b.swappedThisTurn;
+
+            document.getElementById('bench-action-modal').classList.remove('hidden');
+        };
+
+        window.closeBenchModal = function() { document.getElementById('bench-action-modal').classList.add('hidden'); };
+
+        window.confirmBenchSwap = function() {
+            window.closeBenchModal();
+            if (selectedBenchIdx !== null) window.swapBenchChar(selectedBenchIdx);
+        };
+
+        window.confirmBenchSupportSkill = function() {
+            window.closeBenchModal();
+            if (selectedBenchIdx === null) return;
+
+            const b = window.STATE.battle;
+            const benchChar = b.partyData[selectedBenchIdx];
+            const skillInfo = benchChar.skills[0];
+
+            b.actionsLeft--;
+            window.AudioFX.playHit();
+
+            if (skillInfo.type === 'decoy') {
+                b.fieldStatuses = b.fieldStatuses.filter(s => s.type !== 'decoy');
+                b.fieldStatuses.push({ id: 'lynetteDecoy', name: '影野猫ボックス(控え)', hp: 30, maxHp: 30, type: 'decoy' });
+            } else if (skillInfo.type === 'field') {
+                b.fieldStatuses.push({ id: 'bennettField', name: '素晴らしい旅(控え)', turns: 3, value: 20, heal: 15, type: 'atkBuff' });
+            } else if (skillInfo.type === 'shield') {
+                b.fieldStatuses.push({ id: 'zhongliShield', name: '玉璋シールド(控え)', hp: 50, maxHp: 50, type: 'shield' });
+            } else if (skillInfo.type === 'atkBuff') {
+                b.fieldStatuses.push({ id: 'hutaoBuff', name: '冥蝶の舞(控え)', turns: 3, value: 25, type: 'atkBuff' });
             }
-            btn.onclick = () => { window.togglePartyChar(currentPosterCharId); window.updatePosterPartyButton(); };
+
+            window.updateBattleUI();
+            if (b.actionsLeft <= 0) setTimeout(window.endPlayerTurn, 500);
         };
 
-        window.closePosterModal = function() { document.getElementById('poster-modal').classList.add('hidden'); };
-        window.openActiveCharPoster = function() {
-            const char = window.STATE.battle.partyData[window.STATE.battle.activePlayerIdx];
-            if (char) window.showCharacterPoster(char.id);
+        window.spawnWaveEnemy = function(waveIdx) {
+            const waves = [
+                [
+                    { name: 'ヒルチャール Lv.1', level: 'Lv.1', maxHp: 80, element: '無元素', weaknesses: [], skill: { name: '棍棒殴り', damage: 15 } },
+                    { name: 'ヒルチャール Lv.2', level: 'Lv.2', maxHp: 160, element: '無元素', weaknesses: [], skill: { name: '突進頭突き', damage: 25 } }
+                ],
+                [
+                    { name: 'アビスの魔術師・炎', level: 'Lv.3', maxHp: 300, element: '炎', weaknesses: ['水', '氷'], skill: { name: '爆炎旋律', damage: 35 } },
+                    { name: 'アビスの魔術師・水', level: 'Lv.3', maxHp: 350, element: '水', weaknesses: ['草', '雷'], skill: { name: '水泡拘束', damage: 35 } },
+                    { name: 'アビスの魔術師・氷', level: 'Lv.3', maxHp: 320, element: '氷', weaknesses: ['炎', '風'], skill: { name: '氷弾連射', damage: 35 } }
+                ],
+                [
+                    { name: '野伏衆・侍', level: 'Lv.4', maxHp: 500, element: '雷', weaknesses: ['雷', '炎'], skill: { name: '居合い一閃', damage: 50 } },
+                    { name: 'ヒルチャール Lv.4', level: 'Lv.4', maxHp: 640, element: '無元素', weaknesses: [], skill: { name: '暴風殴り', damage: 45 } }
+                ],
+                [
+                    { name: '【BOSS】魔偶剣鬼', level: 'BOSS', maxHp: 800, element: '風', weaknesses: ['炎', '水'], skill: { name: '影分身・霜風一刃', damage: 65 } }
+                ]
+            ];
+
+            const pool = waves[Math.min(waveIdx, waves.length - 1)];
+            const pick = pool[Math.floor(Math.random() * pool.length)];
+            window.STATE.battle.enemy = { ...pick, hp: pick.maxHp };
         };
 
-        window.uploadCustomImage = function(event) {
-            const file = event.target.files[0];
-            if (!file || !currentPosterCharId) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > 500) { h = Math.round((h * 500) / w); w = 500; }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+        window.useSkill = function(skillIdx) {
+            const b = window.STATE.battle;
+            if (!b.isPlayerTurn || b.actionsLeft <= 0) return;
 
-                    const customImgs = JSON.parse(localStorage.getItem('genshin_custom_images') || '{}');
-                    customImgs[currentPosterCharId] = resizedBase64;
-                    localStorage.setItem('genshin_custom_images', JSON.stringify(customImgs));
+            const char = b.partyData[b.activePlayerIdx];
+            if (!char) return;
 
-                    window.showCharacterPoster(currentPosterCharId);
-                    window.updateBattleUI();
-                    window.renderPartyPage();
-                    if (window.saveUserDataToCloud) window.saveUserDataToCloud();
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        };
+            const skill = char.skills[skillIdx];
+            if (!skill) return;
 
-        window.getCharVisualHtml = function(charId, heightClass = 'h-full') {
-            const customImgs = JSON.parse(localStorage.getItem('genshin_custom_images') || '{}');
-            if (customImgs[charId]) {
-                return `<img src="${customImgs[charId]}" alt="立ち絵" class="w-full ${heightClass} object-contain drop-shadow">`;
+            let baseDmg = char.rarity === 5 ? 60 : 40;
+            if (skillIdx === 1) baseDmg += 30;
+
+            const fieldBuff = b.fieldStatuses.filter(s => s.type === 'atkBuff').reduce((sum, s) => sum + (s.value || 0), 0);
+            let totalDmg = baseDmg + fieldBuff;
+
+            let isCrit = Math.random() < 0.1;
+            if (isCrit) totalDmg = Math.floor(totalDmg * 1.5);
+
+            let isWeakness = b.enemy.weaknesses.includes(char.element);
+            if (isWeakness) totalDmg = Math.floor(totalDmg * 1.5);
+
+            b.enemy.hp = Math.max(0, b.enemy.hp - totalDmg);
+            window.AudioFX.playHit();
+
+            // 敵カードのシェイクと巨大ダメージ表示
+            window.triggerHitShake('enemy-card');
+            window.showPopup('enemy-popup-anchor', `-${totalDmg}`, 'damage');
+
+            if (isCrit) setTimeout(() => window.showPopup('enemy-popup-anchor', 'CRITICAL!', 'critical'), 200);
+            if (isWeakness) setTimeout(() => window.showPopup('enemy-popup-anchor', 'WEAKNESS! 1.5x', 'weakness'), 400);
+
+            if (skillIdx === 0) char.burstCharge = Math.min(3, char.burstCharge + 1);
+            else char.burstCharge = 0;
+
+            if (skill.type === 'decoy') {
+                b.fieldStatuses = b.fieldStatuses.filter(s => s.type !== 'decoy');
+                b.fieldStatuses.push({ id: 'lynetteDecoy', name: '影野猫ボックス', hp: 30, maxHp: 30, type: 'decoy' });
+            } else if (skill.type === 'decoyMax') {
+                b.fieldStatuses = b.fieldStatuses.filter(s => s.type !== 'decoy');
+                b.fieldStatuses.push({ id: 'lynetteDecoy', name: '影野猫ボックス', hp: 50, maxHp: 50, type: 'decoy' });
+            } else if (skill.type === 'field') {
+                b.fieldStatuses.push({ id: 'bennettField', name: '素晴らしい旅', turns: 3, value: 20, heal: 15, type: 'atkBuff' });
+            } else if (skill.type === 'shield') {
+                b.fieldStatuses.push({ id: 'zhongliShield', name: '玉璋シールド', hp: 50, maxHp: 50, type: 'shield' });
+            } else if (skill.type === 'atkBuff') {
+                b.fieldStatuses.push({ id: 'hutaoBuff', name: '冥蝶の舞', turns: 3, value: 25, type: 'atkBuff' });
+            } else if (skill.type === 'healBurst') {
+                char.hp = Math.min(char.maxHp, char.hp + 30);
+                window.showPopup('player-popup-anchor', '+30', 'heal');
             }
-            return window.createBuiltInSvg(charId);
+
+            b.actionsLeft--;
+
+            if (b.enemy.hp <= 0) {
+                if (b.currentWave < b.totalWaves) {
+                    b.currentWave++;
+                    window.spawnWaveEnemy(b.currentWave - 1);
+                    window.showModal('WAVE CLEARED!', `次の敵が出現しました！ (WAVE ${b.currentWave}/${b.totalWaves})`, 'fa-swords text-amber-400');
+                } else {
+                    window.STATE.diamonds += 2;
+                    document.getElementById('global-diamonds').innerText = window.STATE.diamonds;
+                    window.showModal('VICTORY!', '全敵を撃破しました！勝利報酬として ダイヤ×2 を獲得！', 'fa-trophy text-amber-400');
+                }
+            }
+
+            window.updateBattleUI();
+
+            if (b.enemy.hp > 0 && b.actionsLeft <= 0) {
+                setTimeout(window.endPlayerTurn, 600);
+            }
         };
 
-        /* バトルシステム */
         window.initBattle = function() {
             const pIds = window.STATE.parties[window.STATE.selectedPartyIdx] || [];
             if (pIds.length === 0) return;
@@ -743,97 +1015,15 @@
             window.STATE.battle.actionsLeft = 5;
             window.STATE.battle.activePlayerIdx = 0;
             window.STATE.battle.isPlayerTurn = true;
+            window.STATE.battle.swappedThisTurn = false;
             window.STATE.battle.fieldStatuses = [];
+
+            window.STATE.battle.deck = window.buildDeck();
+            window.STATE.battle.hand = [];
+            window.drawCards(4);
+
             window.spawnWaveEnemy(0);
             window.updateBattleUI();
-        };
-
-        window.spawnWaveEnemy = function(waveIdx) {
-            let tmpl;
-            if (waveIdx === 0) tmpl = window.ENEMIES_DB[0]; // Hilichurl Lv.1
-            else if (waveIdx === 1) tmpl = window.ENEMIES_DB[Math.floor(Math.random() * 4) + 1]; // Random enemy
-            else if (waveIdx === 2) tmpl = window.ENEMIES_DB[5]; // Samurai
-            else tmpl = window.ENEMIES_DB[6]; // BOSS
-
-            window.STATE.battle.enemy = { ...tmpl, hp: tmpl.baseHp, maxHp: tmpl.baseHp };
-        };
-
-        window.onBattlePartyChange = function() {
-            window.STATE.selectedPartyIdx = parseInt(document.getElementById('battle-party-select').value, 10);
-            window.initBattle();
-        };
-
-        window.useSkill = function(skillIdx) {
-            const b = window.STATE.battle;
-            if (!b.isPlayerTurn || b.actionsLeft <= 0) return;
-            const activeChar = b.partyData[b.activePlayerIdx];
-            const skillInfo = activeChar.skills[skillIdx];
-            if (skillIdx === 1 && activeChar.burstCharge < 3) return;
-
-            if (skillIdx === 0) activeChar.burstCharge = Math.min(3, activeChar.burstCharge + 1);
-            else activeChar.burstCharge = 0;
-
-            b.actionsLeft--;
-            window.AudioFX.playHit();
-
-            // ダメージ計算: ★4 = 40, ★5 = 60
-            let baseDmg = (activeChar.rarity === 5) ? 60 : 40;
-            if (skillIdx === 1) baseDmg *= 1.8;
-
-            // 火力強化バフ確認
-            const atkBuff = b.fieldStatuses.find(s => s.type === 'atkBuff');
-            if (atkBuff) baseDmg += atkBuff.value;
-
-            // 弱点倍率
-            const isWeak = b.enemy.weaknesses.includes(activeChar.element);
-            if (isWeak) baseDmg *= 1.5;
-
-            // 10%クリティカル
-            const isCrit = Math.random() < 0.10;
-            if (isCrit) baseDmg *= 1.5;
-
-            baseDmg = Math.round(baseDmg);
-            b.enemy.hp = Math.max(0, b.enemy.hp - baseDmg);
-
-            // ポップアップ表示
-            if (isWeak) window.showPopup('enemy-popup-anchor', `WEAKNESS! -${baseDmg}`, 'weakness');
-            else if (isCrit) window.showPopup('enemy-popup-anchor', `CRITICAL! -${baseDmg}`, 'critical');
-            else window.showPopup('enemy-popup-anchor', `-${baseDmg}`, 'damage');
-
-            // 特殊スキル設置処理
-            if (skillInfo.type === 'decoy') {
-                b.fieldStatuses = b.fieldStatuses.filter(s => s.type !== 'decoy');
-                b.fieldStatuses.push({ id: 'lynetteDecoy', name: '影野猫ボックス', hp: 30, maxHp: 30, type: 'decoy' });
-            } else if (skillInfo.type === 'decoyMax') {
-                b.fieldStatuses = b.fieldStatuses.filter(s => s.type !== 'decoy');
-                b.fieldStatuses.push({ id: 'lynetteDecoyMax', name: '強化猫ボックス', hp: 50, maxHp: 50, type: 'decoy' });
-            } else if (skillInfo.type === 'field') {
-                b.fieldStatuses.push({ id: 'bennettField', name: '素晴らしい旅', turns: 3, value: 20, heal: 15, type: 'atkBuff' });
-            } else if (skillInfo.type === 'atkBuff') {
-                b.fieldStatuses.push({ id: 'hutaoBuff', name: '冥蝶の舞', turns: 3, value: 25, type: 'atkBuff' });
-            } else if (skillInfo.type === 'shield') {
-                b.fieldStatuses.push({ id: 'zhongliShield', name: '玉璋シールド', hp: 50, maxHp: 50, type: 'shield' });
-            } else if (skillInfo.type === 'healBurst') {
-                activeChar.hp = Math.min(activeChar.maxHp, activeChar.hp + 30);
-                window.showPopup('player-popup-anchor', `+30`, 'heal');
-            }
-
-            window.updateBattleUI();
-
-            if (b.enemy.hp <= 0) {
-                if (b.currentWave < b.totalWaves) {
-                    b.currentWave++;
-                    setTimeout(() => { window.spawnWaveEnemy(b.currentWave - 1); window.updateBattleUI(); }, 500);
-                } else {
-                    window.STATE.diamonds += 2;
-                    document.getElementById('global-diamonds').innerText = window.STATE.diamonds;
-                    if (window.saveUserDataToCloud) window.saveUserDataToCloud();
-                    window.showModal('VICTORY!', '敵の撃破に成功！ ダイヤ×2 を獲得しました！');
-                }
-                return;
-            }
-
-            if (b.actionsLeft <= 0) setTimeout(window.endPlayerTurn, 500);
         };
 
         window.endPlayerTurn = function() {
@@ -851,27 +1041,34 @@
             let dmg = b.enemy.skill.damage;
             const activeChar = b.partyData[b.activePlayerIdx];
 
-            // シールド / デコイでのダメージ肩代わり
             const decoy = b.fieldStatuses.find(s => s.type === 'decoy');
             const shield = b.fieldStatuses.find(s => s.type === 'shield');
 
+            let totalDmgTaken = 0;
             if (decoy) {
                 const absorbed = Math.min(decoy.hp, dmg);
                 decoy.hp -= absorbed; dmg -= absorbed;
+                totalDmgTaken += absorbed;
                 if (decoy.hp <= 0) b.fieldStatuses = b.fieldStatuses.filter(s => s !== decoy);
             }
             if (dmg > 0 && shield) {
                 const absorbed = Math.min(shield.hp, dmg);
                 shield.hp -= absorbed; dmg -= absorbed;
+                totalDmgTaken += absorbed;
                 if (shield.hp <= 0) b.fieldStatuses = b.fieldStatuses.filter(s => s !== shield);
             }
 
             if (dmg > 0) {
                 activeChar.hp = Math.max(0, activeChar.hp - dmg);
-                window.showPopup('player-popup-anchor', `-${dmg}`, 'damage');
+                totalDmgTaken += dmg;
             }
 
-            // ターン経過減算 & 毎ターン回復
+            // プレイヤーカードのシェイクと巨大ダメージ表示
+            if (totalDmgTaken > 0) {
+                window.triggerHitShake('player-active-card');
+                window.showPopup('player-popup-anchor', `-${totalDmgTaken}`, 'damage');
+            }
+
             b.fieldStatuses.forEach(s => {
                 if (s.turns) s.turns--;
                 if (s.heal && activeChar.hp > 0) {
@@ -884,142 +1081,36 @@
             if (activeChar.hp <= 0) {
                 const nextAlive = b.partyData.findIndex(c => c.hp > 0);
                 if (nextAlive !== -1) b.activePlayerIdx = nextAlive;
-                else { window.showModal('DEFEAT', 'パーティーが全滅しました...'); return; }
+                else { window.showModal('DEFEAT', 'パーティーが全滅しました...', 'fa-skull text-rose-500'); return; }
             }
 
             b.actionsLeft = 5;
             b.isPlayerTurn = true;
+            b.swappedThisTurn = false;
+            window.drawCards(2);
             window.updateBattleUI();
         };
 
         window.swapBenchChar = function(partyIdx) {
             const b = window.STATE.battle;
-            if (!b.isPlayerTurn || b.actionsLeft <= 0) return;
+            if (!b.isPlayerTurn || b.actionsLeft <= 0 || b.swappedThisTurn) return;
             if (partyIdx === b.activePlayerIdx || b.partyData[partyIdx].hp <= 0) return;
 
             b.activePlayerIdx = partyIdx;
+            b.swappedThisTurn = true;
             b.actionsLeft--;
             window.updateBattleUI();
-        };
-
-        window.renderPartyPage = function() {
-            const tabs = document.getElementById('party-slot-tabs');
-            if (tabs) {
-                tabs.innerHTML = '';
-                for (let i = 0; i < 5; i++) {
-                    const btn = document.createElement('button');
-                    btn.onclick = () => { window.STATE.editingPartyIdx = i; window.renderPartyPage(); };
-                    btn.className = `px-2.5 py-1 text-xs font-bold rounded-lg ${i === window.STATE.editingPartyIdx ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`;
-                    btn.innerText = `Party ${i + 1}`;
-                    tabs.appendChild(btn);
-                }
-            }
-
-            const slots = document.getElementById('current-party-slots');
-            if (slots) {
-                slots.innerHTML = '';
-                const currentIds = window.STATE.parties[window.STATE.editingPartyIdx] || [];
-                for (let i = 0; i < 4; i++) {
-                    const id = currentIds[i];
-                    const slotEl = document.createElement('div');
-                    if (id) {
-                        const char = window.CHARACTER_DB.find(c => c.id === id);
-                        slotEl.onclick = (e) => { if (!e.target.closest('button')) window.showCharacterPoster(char.id); };
-                        slotEl.className = `tcg-card ${char.rarity === 5 ? 'card-5star' : 'card-4star'} p-2 rounded-xl text-center relative flex flex-col justify-between h-28 cursor-pointer`;
-                        slotEl.innerHTML = `
-                            <button onclick="window.togglePartyChar('${char.id}')" class="absolute top-1 right-1 text-slate-400 hover:text-rose-400 text-xs bg-slate-950/80 w-5 h-5 rounded-full z-20">×</button>
-                            <div class="my-0.5 flex items-center justify-center flex-1 z-10">${window.getCharVisualHtml(char.id, 'h-14')}</div>
-                            <div class="font-extrabold text-xs text-slate-100 truncate z-10">${char.name}</div>
-                        `;
-                    } else {
-                        slotEl.className = `bg-slate-950/60 border-2 border-dashed border-slate-800 p-2 rounded-xl text-center flex flex-col items-center justify-center h-28 text-slate-600`;
-                        slotEl.innerHTML = `<i class="fa-solid fa-plus text-xl mb-1"></i><span class="text-[10px] font-bold">空き枠</span>`;
-                    }
-                    slots.appendChild(slotEl);
-                }
-            }
-
-            const grid = document.getElementById('unlocked-characters-grid');
-            if (grid) {
-                grid.innerHTML = '';
-                window.STATE.unlockedCharIds.forEach(id => {
-                    const char = window.CHARACTER_DB.find(c => c.id === id);
-                    if (!char) return;
-                    const inParty = (window.STATE.parties[window.STATE.editingPartyIdx] || []).includes(id);
-                    const card = document.createElement('div');
-                    card.onclick = () => window.showCharacterPoster(id);
-                    card.className = `tcg-card ${char.rarity === 5 ? 'card-5star' : 'card-4star'} p-2 rounded-xl text-center cursor-pointer h-24 relative ${inParty ? 'ring-2 ring-amber-400' : ''}`;
-                    card.innerHTML = `
-                        <div class="my-0.5 flex items-center justify-center h-12 z-10">${window.getCharVisualHtml(char.id, 'h-12')}</div>
-                        <div class="font-bold text-xs text-slate-100 truncate z-10">${char.name}</div>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-        };
-
-        window.togglePartyChar = function(charId) {
-            const party = window.STATE.parties[window.STATE.editingPartyIdx];
-            const idx = party.indexOf(charId);
-            if (idx !== -1) {
-                if (party.length <= 1) return;
-                party.splice(idx, 1);
-            } else {
-                if (party.length >= 4) return;
-                party.push(charId);
-            }
-            window.renderPartyPage();
-            if (window.saveUserDataToCloud) window.saveUserDataToCloud();
-        };
-
-        window.pullGacha = function(count) {
-            if (window.STATE.diamonds < count) {
-                window.showModal('ダイヤ不足', `ガチャを引くにはダイヤが ${count} 個必要です。対戦で勝利してゲットしましょう！`);
-                return;
-            }
-            window.STATE.diamonds -= count;
-            document.getElementById('global-diamonds').innerText = window.STATE.diamonds;
-            if (window.saveUserDataToCloud) window.saveUserDataToCloud();
-
-            const results = [];
-            for (let i = 0; i < count; i++) {
-                const roll = Math.random();
-                if (roll < 0.18) {
-                    const picked = window.CHARACTER_DB[Math.floor(Math.random() * window.CHARACTER_DB.length)];
-                    results.push({ type: 'char', data: picked });
-                    if (!window.STATE.unlockedCharIds.includes(picked.id)) window.STATE.unlockedCharIds.push(picked.id);
-                } else {
-                    const item = window.TRASH_ITEMS[Math.floor(Math.random() * window.TRASH_ITEMS.length)];
-                    results.push({ type: 'trash', data: item });
-                }
-            }
-            window.renderGachaResults(results);
-        };
-
-        window.renderGachaResults = function(results) {
-            const container = document.getElementById('gacha-result-container'), grid = document.getElementById('gacha-cards-grid');
-            grid.innerHTML = ''; container.classList.remove('hidden');
-            results.forEach(res => {
-                const card = document.createElement('div');
-                if (res.type === 'char') {
-                    const c = res.data;
-                    card.className = `tcg-card ${c.rarity === 5 ? 'card-5star' : 'card-4star'} p-2 rounded-xl text-center h-28 flex flex-col justify-between`;
-                    card.innerHTML = `<div class="my-0.5 flex items-center justify-center h-12 z-10">${window.getCharVisualHtml(c.id, 'h-12')}</div><div class="font-extrabold text-[11px] text-amber-200 truncate z-10">${c.name}</div>`;
-                } else {
-                    const item = res.data;
-                    card.className = `tcg-card card-trash p-2 rounded-xl text-center h-28 flex flex-col justify-between`;
-                    card.innerHTML = `<i class="fa-solid ${item.icon} text-2xl text-slate-400 my-auto"></i><div class="font-bold text-[11px] text-slate-300">${item.name}</div>`;
-                }
-                grid.appendChild(card);
-            });
         };
 
         window.updateBattleUI = function() {
             const b = window.STATE.battle;
             document.getElementById('player-actions').innerText = b.actionsLeft;
             document.getElementById('wave-indicator').innerText = `WAVE ${b.currentWave}/${b.totalWaves}`;
+            document.getElementById('deck-cards-count').innerText = `山札: ${b.deck.length}枚`;
+            document.getElementById('hand-count-text').innerText = `${b.hand.length} / 7枚`;
+            document.getElementById('swap-status-text').innerText = b.swappedThisTurn ? '今ターン交代済み' : '今ターン交代可能 (1回/T)';
+            document.getElementById('swap-status-text').className = b.swappedThisTurn ? 'text-slate-500' : 'text-amber-400';
 
-            // 敵UI
             const e = b.enemy;
             if (e) {
                 document.getElementById('enemy-name').innerText = e.name;
@@ -1031,7 +1122,6 @@
                 document.getElementById('enemy-weakness').innerHTML = `<i class="fa-solid fa-bullseye text-rose-400"></i> 弱点: ${e.weaknesses.length > 0 ? e.weaknesses.join('・') : 'なし'}`;
             }
 
-            // アクティブプレイヤーUI
             const activeChar = b.partyData[b.activePlayerIdx];
             if (activeChar) {
                 document.getElementById('player-name').innerText = activeChar.name;
@@ -1040,42 +1130,50 @@
                 document.getElementById('player-img-container').innerHTML = window.getCharVisualHtml(activeChar.id, 'h-32 sm:h-36');
                 document.getElementById('player-hp-bar').style.width = `${(activeChar.hp / activeChar.maxHp) * 100}%`;
                 document.getElementById('player-hp-text').innerText = `${Math.ceil(activeChar.hp)} / ${activeChar.maxHp}`;
-                document.getElementById('burst-charge-dots').innerText = `${activeChar.burstCharge}/3`;
-
-                // スキルボタンテキスト
-                document.getElementById('skill-1-name').innerText = activeChar.skills[0].name;
-                document.getElementById('skill-1-desc').innerText = activeChar.skills[0].desc;
-                document.getElementById('skill-1-dmg').innerText = `${activeChar.rarity === 5 ? 60 : 40} Dmg`;
-                document.getElementById('skill-2-name').innerText = activeChar.skills[1].name;
-                document.getElementById('skill-2-desc').innerText = activeChar.skills[1].desc;
-                document.getElementById('btn-skill-2').disabled = activeChar.burstCharge < 3;
             }
 
-            // 設置効果バッジ一覧
+            const handContainer = document.getElementById('hand-cards-container');
+            handContainer.innerHTML = '';
+            if (b.hand.length === 0) {
+                handContainer.innerHTML = '<span class="text-[10px] text-slate-500 italic mx-auto">手札カードなし</span>';
+            } else {
+                b.hand.forEach((item, idx) => {
+                    const card = document.createElement('button');
+                    card.onclick = () => window.useHandCard(idx);
+                    card.className = 'tcg-card bg-slate-950 border border-amber-500/40 hover:border-amber-400 rounded-lg p-1.5 flex flex-col items-center justify-between w-20 h-16 flex-shrink-0 text-center transition';
+                    card.innerHTML = `
+                        <i class="fa-solid ${item.icon} text-amber-400 text-sm"></i>
+                        <span class="text-[9px] font-bold text-slate-100 truncate w-full">${item.name}</span>
+                        <span class="text-[8px] text-cyan-300 font-mono">+${item.value}</span>
+                    `;
+                    handContainer.appendChild(card);
+                });
+            }
+
             const badgeList = document.getElementById('field-badges-list');
             badgeList.innerHTML = '';
             if (b.fieldStatuses.length === 0) {
-                badgeList.innerHTML = '<span class="text-[10px] text-slate-500 italic text-center">発動中の設置効果なし</span>';
+                badgeList.innerHTML = '<span class="text-[10px] text-slate-500 italic text-center">発動中の設置・装備効果なし</span>';
             } else {
                 b.fieldStatuses.forEach(s => {
                     const badge = document.createElement('div');
-                    badge.className = 'bg-slate-950 border border-amber-500/40 rounded px-2 py-1 text-[10px] flex justify-between items-center';
+                    badge.className = 'bg-slate-950 border border-amber-500/40 rounded px-2 py-0.5 text-[10px] flex justify-between items-center';
                     let info = '';
                     if (s.hp !== undefined) info = `HP:${s.hp}/${s.maxHp}`;
                     else if (s.turns !== undefined) info = `残り${s.turns}T`;
+                    else if (s.value !== undefined) info = `+${s.value}`;
                     badge.innerHTML = `<span class="font-bold text-amber-300 truncate">${s.name}</span><span class="text-[9px] text-slate-400 font-mono">${info}</span>`;
                     badgeList.appendChild(badge);
                 });
             }
 
-            // ベンチキャラUI
             const benchContainer = document.getElementById('bench-container');
             benchContainer.innerHTML = '';
             b.partyData.forEach((char, idx) => {
                 if (idx === b.activePlayerIdx) return;
                 const benchCard = document.createElement('div');
-                benchCard.onclick = () => window.swapBenchChar(idx);
-                benchCard.className = `bg-slate-900 border ${char.hp > 0 ? 'border-slate-700 hover:border-amber-400' : 'border-rose-900/50 opacity-40'} p-1.5 rounded-xl text-center cursor-pointer flex items-center gap-2 shadow transition`;
+                benchCard.onclick = () => window.openBenchModal(idx);
+                benchCard.className = `bg-slate-900 border ${char.hp > 0 ? 'border-slate-700 hover:border-indigo-400' : 'border-rose-900/50 opacity-40'} p-1.5 rounded-xl text-center cursor-pointer flex items-center gap-2 shadow transition`;
                 benchCard.innerHTML = `
                     <div class="w-8 h-8 rounded bg-slate-950 flex items-center justify-center overflow-hidden flex-shrink-0">${window.getCharVisualHtml(char.id, 'h-8')}</div>
                     <div class="flex-1 min-w-0 text-left">
@@ -1089,27 +1187,193 @@
             });
         };
 
+        // パーティ画面レンダリング
+        window.renderPartyPage = function() {
+            const currentPartyIdx = window.STATE.editingPartyIdx;
+            
+            const tabsContainer = document.getElementById('party-slot-tabs');
+            tabsContainer.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const btn = document.createElement('button');
+                btn.onclick = () => window.selectPartyTab(i);
+                btn.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition ${i === currentPartyIdx ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-400 hover:text-slate-200'}`;
+                btn.innerText = `P${i + 1}`;
+                tabsContainer.appendChild(btn);
+            }
+
+            const partyIds = window.STATE.parties[currentPartyIdx] || [];
+
+            const slotsContainer = document.getElementById('current-party-slots');
+            slotsContainer.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                const slot = document.createElement('div');
+                const charId = partyIds[i];
+                if (charId) {
+                    const char = window.CHARACTER_DB.find(c => c.id === charId);
+                    slot.className = 'tcg-card bg-slate-900 border border-amber-500/50 rounded-xl p-2 text-center flex flex-col items-center justify-between h-36 cursor-pointer relative';
+                    slot.onclick = () => window.openPosterModal(charId);
+                    slot.innerHTML = `
+                        <div class="flex justify-between w-full text-[9px]">
+                            <span class="text-amber-300 font-bold">★${char.rarity}</span>
+                            <button onclick="event.stopPropagation(); window.togglePartyChar('${charId}')" class="text-rose-400 hover:text-rose-300 text-xs px-1">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </button>
+                        </div>
+                        <div class="w-full h-20 my-1 flex items-center justify-center">${window.getCharVisualHtml(charId, 'h-20')}</div>
+                        <div class="font-extrabold text-xs text-amber-200 truncate w-full">${char.name}</div>
+                    `;
+                } else {
+                    slot.className = 'bg-slate-950/60 border-2 border-dashed border-slate-800 rounded-xl p-2 text-center flex flex-col items-center justify-center h-36 text-slate-600';
+                    slot.innerHTML = `<i class="fa-solid fa-plus text-xl mb-1"></i><span class="text-[10px] font-bold">空き枠</span>`;
+                }
+                slotsContainer.appendChild(slot);
+            }
+
+            const unlockedContainer = document.getElementById('unlocked-characters-grid');
+            unlockedContainer.innerHTML = '';
+            document.getElementById('unlocked-count').innerText = `所持: ${window.STATE.unlockedCharIds.length} / ${window.CHARACTER_DB.length} キャラ`;
+
+            window.CHARACTER_DB.forEach(char => {
+                const isUnlocked = window.STATE.unlockedCharIds.includes(char.id);
+                const inParty = partyIds.includes(char.id);
+
+                const card = document.createElement('div');
+                card.className = `tcg-card ${isUnlocked ? (inParty ? 'border-2 border-indigo-400 bg-indigo-950/40' : 'bg-slate-900 border border-slate-700') : 'bg-slate-950/80 border border-slate-900 opacity-30 cursor-not-allowed'} rounded-xl p-2 text-center flex flex-col items-center justify-between h-36 cursor-pointer relative`;
+                
+                if (isUnlocked) card.onclick = () => window.openPosterModal(char.id);
+
+                card.innerHTML = `
+                    <div class="flex justify-between w-full text-[9px]">
+                        <span class="${char.rarity === 5 ? 'text-amber-400' : 'text-purple-400'} font-bold">★${char.rarity}</span>
+                        ${inParty ? '<span class="bg-indigo-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">セット中</span>' : ''}
+                    </div>
+                    <div class="w-full h-20 my-1 flex items-center justify-center">${window.getCharVisualHtml(char.id, 'h-20')}</div>
+                    <div class="font-bold text-xs text-slate-200 truncate w-full">${char.name}</div>
+                `;
+                unlockedContainer.appendChild(card);
+            });
+        };
+
+        window.selectPartyTab = function(idx) {
+            window.STATE.editingPartyIdx = idx;
+            window.renderPartyPage();
+        };
+
+        window.togglePartyChar = function(charId) {
+            const currentParty = window.STATE.parties[window.STATE.editingPartyIdx] || [];
+            const idx = currentParty.indexOf(charId);
+            if (idx > -1) {
+                currentParty.splice(idx, 1);
+            } else {
+                if (currentParty.length >= 4) {
+                    window.showModal('編成上限', '1つのパーティには最大4人まで編成できます。', 'fa-users text-indigo-400');
+                    return;
+                }
+                currentParty.push(charId);
+            }
+            window.STATE.parties[window.STATE.editingPartyIdx] = currentParty;
+            window.renderPartyPage();
+        };
+
+        window.onBattlePartyChange = function() {
+            const val = parseInt(document.getElementById('battle-party-select').value, 10);
+            window.STATE.selectedPartyIdx = val;
+            window.initBattle();
+        };
+
+        // ポスター表示 & アップロード
+        let currentPosterCharId = 'hutao';
+
+        window.openActiveCharPoster = function() {
+            window.closeSkillModal();
+            const activeChar = window.STATE.battle.partyData[window.STATE.battle.activePlayerIdx];
+            if (activeChar) window.openPosterModal(activeChar.id);
+        };
+
+        window.openPosterModal = function(charId) {
+            currentPosterCharId = charId;
+            const c = window.CHARACTER_DB.find(x => x.id === charId);
+            if (!c) return;
+
+            document.getElementById('poster-char-name').innerText = c.name;
+            document.getElementById('poster-char-romaji').innerText = c.romaji;
+            document.getElementById('poster-vision-badge').innerText = c.vision;
+            document.getElementById('poster-rarity-badge').innerText = `★${c.rarity}`;
+            document.getElementById('poster-char-quote').innerText = c.quote;
+            document.getElementById('poster-char-author').innerText = c.quoteAuthor;
+
+            document.getElementById('poster-char-art-container').innerHTML = window.getCharVisualHtml(charId, 'h-64 sm:h-72');
+
+            const editingParty = window.STATE.parties[window.STATE.editingPartyIdx] || [];
+            const isInParty = editingParty.includes(charId);
+            document.getElementById('poster-party-btn-text').innerText = isInParty ? 'パーティから外す' : 'パーティに追加';
+
+            document.getElementById('poster-modal').classList.remove('hidden');
+        };
+
+        window.closePosterModal = function() { document.getElementById('poster-modal').classList.add('hidden'); };
+
+        window.togglePosterCharParty = function() {
+            window.togglePartyChar(currentPosterCharId);
+            const editingParty = window.STATE.parties[window.STATE.editingPartyIdx] || [];
+            const isInParty = editingParty.includes(currentPosterCharId);
+            document.getElementById('poster-party-btn-text').innerText = isInParty ? 'パーティから外す' : 'パーティに追加';
+        };
+
+        window.uploadCustomImage = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (!window.STATE.customImages) window.STATE.customImages = {};
+                window.STATE.customImages[currentPosterCharId] = e.target.result;
+
+                document.getElementById('poster-char-art-container').innerHTML = window.getCharVisualHtml(currentPosterCharId, 'h-64 sm:h-72');
+                window.updateBattleUI();
+                if (!document.getElementById('page-party').classList.contains('hidden')) {
+                    window.renderPartyPage();
+                }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // ポップアップ & モーダル通知
+        window.triggerHitShake = function(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.classList.remove('hit-shake');
+            void el.offsetWidth;
+            el.classList.add('hit-shake');
+            setTimeout(() => el.classList.remove('hit-shake'), 450);
+        };
+
         window.showPopup = function(anchorId, text, type) {
-            const anchor = document.getElementById(anchorId); if (!anchor) return;
+            const anchor = document.getElementById(anchorId);
+            if (!anchor) return;
+
             const pop = document.createElement('div');
             if (type === 'damage') pop.className = 'damage-popup';
             else if (type === 'critical') pop.className = 'critical-popup';
             else if (type === 'weakness') pop.className = 'weakness-popup';
-            else pop.className = 'heal-popup';
+            else if (type === 'heal') pop.className = 'heal-popup';
+            else pop.className = 'damage-popup';
+
             pop.innerText = text;
-            anchor.appendChild(pop); setTimeout(() => pop.remove(), 1200);
+            anchor.appendChild(pop);
+            setTimeout(() => pop.remove(), 1300);
         };
 
-        window.showModal = function(title, desc) {
+        window.showModal = function(title, desc, iconClass = 'fa-trophy text-amber-400') {
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-desc').innerText = desc;
+            document.getElementById('modal-icon').className = `fa-solid ${iconClass} text-3xl`;
             document.getElementById('game-modal').classList.remove('hidden');
         };
-        window.closeModal = function() {
-            document.getElementById('game-modal').classList.add('hidden');
-            window.initBattle();
-        };
 
+        window.closeModal = function() { document.getElementById('game-modal').classList.add('hidden'); };
+
+        // 起動初期化
         window.onload = function() {
             window.initBattle();
             window.renderPartyPage();
