@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>原神 TEYVAT CARD DUEL</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            user-select: none;
+            background: #090d16;
+            color: #f8fafc;
+            overflow-x: hidden;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        /* ポケポケ風トレーディングカードホログラム効果 */
+        .tcg-card {
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .tcg-card:hover {
+            transform: translateY(-4px) scale(1.02);
+        }
+
+        .card-5star {
+            border: 2px solid #f59e0b;
+            background: linear-gradient(135deg, #2b1d12 0%, #4a2d12 50%, #1e0d05 100%);
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.35);
+        }
+        .card-5star::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(125deg, transparent 0%, rgba(255, 215, 0, 0.2) 45%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 215, 0, 0.2) 55%, transparent 100%);
+            pointer-events: none;
+            border-radius: inherit;
+            background-size: 200% 200%;
+            animation: holoShift 4s infinite linear;
+        }
+
+        .card-4star {
+            border: 2px solid #a855f7;
+            background: linear-gradient(135deg, #1e152a 0%, #351c4a 50%, #130a21 100%);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+        }
+
+        .card-trash {
+            border: 1px solid #475569;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        @keyframes holoShift {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ダメージ＆ポップアップアニメーション */
+        .damage-popup {
+            position: absolute;
+            font-weight: 900;
+            font-size: 2rem;
+            color: #ef4444;
+            text-shadow: 0 0 6px #000, 2px 2px 0 #000;
+            pointer-events: none;
+            animation: popAndFade 1.1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            z-index: 100;
+        }
+
+        .effective-popup {
+            position: absolute;
+            font-weight: 900;
+            font-size: 1.6rem;
+            color: #fbbf24;
+            text-shadow: 0 0 8px #d97706, 2px 2px 0 #000;
+            pointer-events: none;
+            animation: popAndFade 1.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            z-index: 101;
+        }
+
+        .heal-popup {
+            position: absolute;
+            font-weight: 900;
+            font-size: 2rem;
+            color: #4ade80;
+            text-shadow: 0 0 6px #000, 2px 2px 0 #000;
+            pointer-events: none;
+            animation: popAndFade 1.1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            z-index: 100;
+        }
+
+        @keyframes popAndFade {
+            0% { opacity: 0; transform: translateY(0) scale(0.5); }
+            30% { opacity: 1; transform: translateY(-25px) scale(1.2); }
+            70% { opacity: 1; transform: translateY(-40px) scale(1); }
+            100% { opacity: 0; transform: translateY(-55px) scale(0.8); }
+        }
+
+        /* 技カットイン */
+        .skill-cutin {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .skill-cutin.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .skill-banner {
+            width: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(225, 29, 72, 0.9) 20%, rgba(159, 18, 57, 0.95) 50%, rgba(225, 29, 72, 0.9) 80%, transparent 100%);
+            padding: 24px 0;
+            transform: skewY(-3deg);
+            box-shadow: 0 0 35px rgba(225, 29, 72, 0.8);
+            text-align: center;
+        }
+
+        /* カスタムスクロールバー */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+
+    <!-- 全体共通トップ固定バー (z-50) -->
+    <header class="fixed top-0 left-0 right-0 h-14 bg-slate-900/95 border-b border-slate-800 px-4 flex justify-between items-center z-50 backdrop-blur shadow-md">
+        <div class="flex items-center gap-3">
+            <!-- ハンバーガーボタン (☰) -->
+            <button id="btn-hamburger" onclick="toggleMenu()" aria-label="メニュー" class="text-amber-400 hover:text-amber-300 text-2xl p-1.5 rounded-lg focus:outline-none transition active:scale-90 flex items-center justify-center">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <h1 class="font-cinzel text-base sm:text-lg font-bold tracking-wider text-amber-300 flex items-center gap-2">
+                <i class="fa-solid fa-gem text-amber-400"></i> TEYVAT CARD DUEL
+            </h1>
+        </div>
+
+        <!-- ダイヤ表示 -->
+        <div class="flex items-center gap-2 bg-slate-800 border border-amber-500/40 px-3 py-1 rounded-full shadow">
+            <i class="fa-solid fa-gem text-cyan-400 text-xs animate-pulse"></i>
+            <span class="text-xs text-slate-300 font-bold hidden sm:inline">ダイヤ:</span>
+            <span id="global-diamonds" class="text-sm font-black text-amber-300 font-cinzel">10</span>
+        </div>
+    </header>
+
+    <!-- ドロワーナビゲーションメニュー -->
+    <div id="nav-drawer" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity duration-300 opacity-0 pointer-events-none flex">
+        <div id="drawer-content" class="w-72 bg-slate-900 h-full border-r border-slate-800 p-5 flex flex-col justify-between transform -translate-x-full transition-transform duration-300 shadow-2xl">
+            <div>
+                <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-3">
+                    <span class="font-cinzel text-amber-400 font-black text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-compass"></i> MENU
+                    </span>
+                    <button onclick="toggleMenu()" class="text-slate-400 hover:text-white text-2xl p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <nav class="flex flex-col gap-3">
+                    <button onclick="switchPage('battle')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold p-3.5 rounded-xl border border-amber-500/30 flex items-center gap-3 transition">
+                        <i class="fa-solid fa-swords text-amber-400 text-lg w-6"></i> 対戦 (Battle)
+                    </button>
+                    <button onclick="switchPage('party')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold p-3.5 rounded-xl border border-slate-700 flex items-center gap-3 transition">
+                        <i class="fa-solid fa-users text-indigo-400 text-lg w-6"></i> パーティ編成
+                    </button>
+                    <button onclick="switchPage('gacha')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold p-3.5 rounded-xl border border-slate-700 flex items-center gap-3 transition">
+                        <i class="fa-solid fa-wand-magic-sparkles text-purple-400 text-lg w-6"></i> ガチャ (祈願)
+                    </button>
+                </nav>
+            </div>
+
+            <div class="text-xs text-slate-500 text-center border-t border-slate-800 pt-4">
+                原神ポケポケ風 TCG v3.0
+            </div>
+        </div>
+        <div class="flex-1" onclick="toggleMenu()"></div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-1 pt-16 pb-6 max-w-6xl w-full mx-auto px-2 sm:px-4 flex flex-col min-h-screen box-border">
+
+        <!-- ==================== 1. 対戦ページ ==================== -->
+        <section id="page-battle" class="page-view flex-1 flex flex-col gap-3">
+            <!-- 戦闘操作ヘッダー -->
+            <div id="battle-prep-bar" class="bg-slate-900 border border-slate-800 p-2.5 sm:p-3 rounded-xl flex flex-wrap items-center justify-between gap-2 shadow">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-400">出撃:</span>
+                    <select id="battle-party-select" onchange="onBattlePartyChange()" class="bg-slate-800 text-amber-300 border border-amber-500/40 font-bold text-xs sm:text-sm rounded-lg px-2.5 py-1 focus:outline-none">
+                        <option value="0">Party 1</option>
+                        <option value="1">Party 2</option>
+                        <option value="2">Party 3</option>
+                        <option value="3">Party 4</option>
+                        <option value="4">Party 5</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <div class="flex items-center gap-1.5 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
+                        <i class="fa-solid fa-bolt text-amber-400 text-xs"></i>
+                        <span class="text-xs text-slate-400">Energy:</span>
+                        <span id="player-energy" class="text-base font-black text-amber-300 font-cinzel">2</span>
+                        <span class="text-xs text-slate-600">/ 5</span>
+                    </div>
+                    <button id="btn-end-turn" onclick="endPlayerTurn()" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black px-3.5 py-1.5 rounded-lg text-xs sm:text-sm shadow transition active:scale-95 flex items-center gap-1">
+                        <span>ターン終了</span>
+                        <i class="fa-solid fa-forward-step text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- バトルエリアメイン -->
+            <div class="flex-1 flex flex-col justify-between rounded-2xl bg-gradient-to-b from-slate-900/90 via-slate-950 to-slate-900/90 border border-slate-800 p-3 sm:p-4 relative space-y-4">
+                
+                <!-- 敵エリア -->
+                <div class="flex flex-col items-center w-full">
+                    <div id="enemy-active-container" class="relative">
+                        <div id="enemy-popup-anchor" class="absolute -top-8 left-1/2 -translate-x-1/2"></div>
+                        
+                        <div id="enemy-card" class="tcg-card w-44 sm:w-52 bg-slate-900 border-2 border-rose-500/70 rounded-xl p-2.5 text-center shadow-xl relative overflow-hidden">
+                            <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-1">
+                                <span id="enemy-element" class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-slate-800 text-slate-300">無元素</span>
+                                <span id="enemy-weakness" class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-amber-950 text-amber-300 border border-amber-600/50"><i class="fa-solid fa-bullseye text-rose-400"></i> 弱点: 炎</span>
+                            </div>
+
+                            <div class="w-full h-20 sm:h-24 my-1 rounded-lg bg-slate-950 flex flex-col items-center justify-center border border-slate-800">
+                                <i id="enemy-icon" class="fa-solid fa-skull text-4xl sm:text-5xl text-rose-500"></i>
+                            </div>
+
+                            <h3 id="enemy-name" class="font-extrabold text-xs sm:text-sm text-slate-100 my-0.5 truncate">ヒルチャール</h3>
+
+                            <!-- HPバー -->
+                            <div class="w-full bg-slate-950 rounded-full h-3 border border-slate-700 relative overflow-hidden my-1">
+                                <div id="enemy-hp-bar" class="bg-gradient-to-r from-rose-600 to-red-500 h-full rounded-full transition-all duration-300" style="width: 100%;"></div>
+                                <span id="enemy-hp-text" class="absolute inset-0 text-[9px] font-bold text-white flex items-center justify-center leading-none">80 / 80</span>
+                            </div>
+
+                            <div class="text-[10px] text-slate-400 bg-slate-950/80 rounded p-1 border border-slate-800 mt-1 flex justify-between items-center">
+                                <span>次回攻撃:</span>
+                                <span id="enemy-next-skill" class="text-amber-300 font-bold">棍棒殴り (20)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- プレイヤーエリア ＆ フィールド効果 ＆ スキル -->
+                <div class="w-full flex flex-col items-center">
+                    <div class="flex flex-col md:flex-row items-center md:items-stretch justify-center gap-3 w-full max-w-4xl">
+                        
+                        <!-- アクティブキャラカード -->
+                        <div id="player-active-container" class="relative flex-shrink-0">
+                            <div id="player-popup-anchor" class="absolute -top-8 left-1/2 -translate-x-1/2"></div>
+                            
+                            <div id="player-active-card" class="tcg-card card-5star w-48 sm:w-52 rounded-xl p-2.5 text-center shadow-xl relative overflow-hidden">
+                                <div class="flex justify-between items-center mb-1 border-b border-amber-500/30 pb-1">
+                                    <span id="player-rarity" class="text-[10px] text-amber-300 font-bold">★5</span>
+                                    <span id="player-element-badge" class="text-[10px] px-2 py-0.5 rounded font-bold bg-rose-950 text-rose-300 border border-rose-500">炎元素</span>
+                                </div>
+
+                                <div id="player-avatar" class="w-full h-24 sm:h-28 my-1 rounded-lg bg-slate-950 flex flex-col items-center justify-center border border-amber-500/30 relative">
+                                    <i id="player-icon" class="fa-solid fa-fire text-5xl text-rose-500"></i>
+                                </div>
+
+                                <h3 id="player-name" class="font-extrabold text-sm sm:text-base text-amber-200 tracking-wide">胡桃</h3>
+
+                                <div class="w-full bg-slate-950 rounded-full h-3.5 border border-amber-500/40 relative overflow-hidden my-1">
+                                    <div id="player-hp-bar" class="bg-gradient-to-r from-emerald-500 to-green-400 h-full rounded-full transition-all duration-300" style="width: 100%;"></div>
+                                    <span id="player-hp-text" class="absolute inset-0 text-[10px] font-black text-slate-950 flex items-center justify-center leading-none">120 / 120</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- バトル場横：フィールド設置効果 & ステータスマーク表示 -->
+                        <div id="field-status-container" class="w-full md:w-44 bg-slate-900/90 border border-slate-700/80 p-2.5 rounded-xl shadow flex flex-col justify-start">
+                            <div class="text-[11px] font-bold text-amber-400 border-b border-slate-800 pb-1.5 mb-1.5 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group"></i> 設置効果</span>
+                                <span class="text-[9px] text-slate-500 font-normal">バトル場</span>
+                            </div>
+                            <div id="field-badges-list" class="flex flex-col gap-1.5 flex-1 min-h-[50px] justify-center">
+                                <span class="text-[10px] text-slate-500 italic text-center">発動中の設置効果なし</span>
+                            </div>
+                        </div>
+
+                        <!-- スキルボタン群 -->
+                        <div id="skill-panel" class="flex flex-col gap-2 w-full md:w-64 bg-slate-900/90 border border-slate-700 p-2.5 rounded-xl shadow">
+                            <div class="text-[11px] font-bold text-slate-400 border-b border-slate-800 pb-1 flex justify-between">
+                                <span><i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> 発動スキル</span>
+                                <span class="text-amber-400 text-[10px] font-bold">弱点突くと 1.5倍!</span>
+                            </div>
+
+                            <button id="btn-skill-1" onclick="useSkill(0)" class="group bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg p-2 text-left transition flex justify-between items-center disabled:opacity-50">
+                                <div class="pr-1">
+                                    <div id="skill-1-name" class="font-bold text-xs sm:text-sm text-slate-100 group-hover:text-amber-300">スキル1</div>
+                                    <div id="skill-1-desc" class="text-[10px] text-slate-400 mt-0.5 leading-tight">説明</div>
+                                </div>
+                                <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-slate-700 flex-shrink-0">
+                                    <i class="fa-solid fa-bolt text-amber-400 text-xs"></i>
+                                    <span id="skill-1-cost" class="text-xs font-extrabold text-amber-300">1</span>
+                                </div>
+                            </button>
+
+                            <button id="btn-skill-2" onclick="useSkill(1)" class="group bg-slate-800 hover:bg-slate-700 border border-amber-500/40 rounded-lg p-2 text-left transition flex justify-between items-center disabled:opacity-50">
+                                <div class="pr-1">
+                                    <div id="skill-2-name" class="font-bold text-xs sm:text-sm text-amber-200 group-hover:text-amber-100">スキル2 (爆発)</div>
+                                    <div id="skill-2-desc" class="text-[10px] text-slate-400 mt-0.5 leading-tight">説明</div>
+                                </div>
+                                <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded border border-amber-500/50 flex-shrink-0">
+                                    <i class="fa-solid fa-bolt text-amber-400 text-xs"></i>
+                                    <span id="skill-2-cost" class="text-xs font-extrabold text-amber-300">3</span>
+                                </div>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- 控えベンチキャラ -->
+                    <div class="mt-3 w-full max-w-2xl">
+                        <div class="text-[10px] font-bold text-slate-400 mb-1">控キャラ (タップで出撃交代)</div>
+                        <div id="bench-container" class="grid grid-cols-3 gap-2">
+                            <!-- JS生成 -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== 2. パーティ編成ページ ==================== -->
+        <section id="page-party" class="page-view flex-1 flex-col hidden">
+            <div class="bg-slate-900 border border-slate-800 p-3 sm:p-5 rounded-2xl shadow">
+                <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-3 gap-2">
+                    <h2 class="text-base sm:text-lg font-bold text-amber-300 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-indigo-400"></i> パーティ編成 (最大4人)
+                    </h2>
+                    <div class="flex gap-1" id="party-slot-tabs">
+                        <!-- JSで Party 1〜5 タブ生成 -->
+                    </div>
+                </div>
+
+                <div class="text-xs text-slate-400 font-bold mb-2">現在の編成</div>
+                <div id="current-party-slots" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6">
+                    <!-- JS生成 -->
+                </div>
+
+                <div class="text-xs text-slate-400 font-bold mb-2 flex justify-between items-center">
+                    <span>所持キャラ一覧 (タップで編成枠に追加/切替)</span>
+                    <span id="unlocked-count" class="text-amber-400 font-bold">所持: 4キャラ</span>
+                </div>
+                <div id="unlocked-characters-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 max-h-96 overflow-y-auto p-1.5 border border-slate-800 rounded-xl bg-slate-950/50">
+                    <!-- JS生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. ガチャ (祈願) ページ ==================== -->
+        <section id="page-gacha" class="page-view flex-1 flex-col hidden">
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl shadow flex flex-col items-center">
+                <div class="w-full text-center py-5 px-4 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 rounded-xl border border-purple-500/40 mb-5">
+                    <span class="text-[10px] uppercase tracking-widest text-amber-400 font-cinzel font-bold">Event Wish</span>
+                    <h2 class="text-xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 my-1">
+                        神鋳祈願 - 旅立ちの仲間
+                    </h2>
+                    <p class="text-xs text-slate-300">★5キャラ排出率 3%！ 10連祈願で強力な仲間を手に入れよう！</p>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-3 mb-6">
+                    <button onclick="pullGacha(1)" class="bg-gradient-to-r from-indigo-700 to-indigo-600 hover:from-indigo-600 border border-indigo-400 text-white font-bold px-5 py-2.5 rounded-xl shadow transition active:scale-95 flex items-center gap-2 text-xs sm:text-sm">
+                        <span>1回引く</span>
+                        <span class="bg-indigo-950 px-2 py-0.5 rounded-full text-[10px] text-cyan-300 border border-indigo-500"><i class="fa-solid fa-gem"></i> 1</span>
+                    </button>
+                    <button onclick="pullGacha(10)" class="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 hover:from-amber-400 border border-amber-300 text-slate-950 font-black px-7 py-2.5 rounded-xl shadow-lg transition active:scale-95 flex items-center gap-2 text-xs sm:text-sm">
+                        <span>10連祈願</span>
+                        <span class="bg-slate-950 px-2 py-0.5 rounded-full text-[10px] text-cyan-300 border border-amber-400"><i class="fa-solid fa-gem"></i> 10</span>
+                    </button>
+                </div>
+
+                <div id="gacha-result-container" class="w-full hidden">
+                    <h3 class="text-center font-bold text-amber-300 mb-3 text-sm sm:text-base">祈願結果</h3>
+                    <div id="gacha-cards-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 max-w-4xl mx-auto">
+                        <!-- JS生成 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- スキル発動演出モーダル -->
+    <div id="skill-cutin-modal" class="skill-cutin">
+        <div class="skill-banner">
+            <h2 id="cutin-char-name" class="text-amber-300 text-sm font-extrabold uppercase tracking-widest">胡桃</h2>
+            <div id="cutin-skill-name" class="text-3xl sm:text-5xl font-black text-white drop-shadow-lg font-cinzel my-1">安神の法</div>
+            <p id="cutin-skill-sub" class="text-xs sm:text-sm text-amber-200 font-bold">元素爆発発動！</p>
+        </div>
+    </div>
+
+    <!-- 勝敗モーダル -->
+    <div id="game-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center hidden">
+        <div class="bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-6 max-w-md w-full text-center shadow-2xl mx-4">
+            <div id="modal-icon-box" class="w-16 h-16 mx-auto mb-3 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center">
+                <i id="modal-icon" class="fa-solid fa-trophy text-3xl text-amber-400"></i>
+            </div>
+            <h2 id="modal-title" class="text-2xl font-black text-amber-300 mb-1">VICTORY!</h2>
+            <p id="modal-desc" class="text-xs sm:text-sm text-slate-300 mb-5">勝利報酬として ダイヤ×2 を獲得しました！</p>
+            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black py-2.5 rounded-xl shadow transition active:scale-95 text-sm">
+                確認
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript ロジック -->
+    <script>
+        // Web Audio API による効果音合成
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playHit() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.12);
+            },
+            playHeal() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.2);
+            },
+            playBurst() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(200, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.35);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.35);
+            }
+        };
+
+        /* キャラクターマスターデータベース */
+        const CHARACTER_DB = [
+            { id: 'hutao', name: '胡桃', rarity: 5, element: '炎', elementBadge: 'bg-rose-950 text-rose-300 border-rose-500', icon: 'fa-fire', iconColor: 'text-rose-500', maxHp: 120, skills: [{ name: '蝶引来生', cost: 1, desc: 'HP20消費: 冥蝶状態(3T 技威力+25)', isField: true, fieldId: 'hutaoBuff' }, { name: '安神の法', cost: 3, desc: '85ダメ & HP30回復 (必殺技)', isBurst: true }] },
+            { id: 'zhongli', name: '鍾離', rarity: 5, element: '岩', elementBadge: 'bg-amber-950 text-amber-300 border-amber-500', icon: 'fa-shield-halved', iconColor: 'text-amber-400', maxHp: 140, skills: [{ name: '地心', cost: 1, desc: '30ダメ & シールド(40HP)展開', isField: true, fieldId: 'zhongliShield' }, { name: '天星', cost: 3, desc: '100 巨大隕石ダメージ！', isBurst: true }] },
+            { id: 'raiden', name: '雷電将軍', rarity: 5, element: '雷', elementBadge: 'bg-purple-950 text-purple-300 border-purple-500', icon: 'fa-bolt-lightning', iconColor: 'text-purple-400', maxHp: 115, skills: [{ name: '神変・悪曜開眼', cost: 1, desc: '35ダメ & エネルギー1回復' }, { name: '奥義・夢想真説', cost: 3, desc: '110 夢想の一刀ダメージ！', isBurst: true }] },
+            { id: 'nahida', name: 'ナヒーダ', rarity: 5, element: '草', elementBadge: 'bg-lime-950 text-lime-300 border-lime-500', icon: 'fa-leaf', iconColor: 'text-lime-400', maxHp: 105, skills: [{ name: '所聞遍計', cost: 1, desc: '30ダメ & 草元素付与' }, { name: '心景幻成', cost: 2, desc: '摩訶摩耶の領域(3T 全威力+20)', isBurst: true, isField: true, fieldId: 'nahidaField' }] },
+            { id: 'furina', name: 'フリーナ', rarity: 5, element: '水', elementBadge: 'bg-sky-950 text-sky-300 border-sky-500', icon: 'fa-droplet', iconColor: 'text-sky-400', maxHp: 110, skills: [{ name: 'サロン・ソリテア', cost: 1, desc: '40ダメージ' }, { name: '万民に歓呼を', cost: 3, desc: '全体40回復 & テンションUP', isBurst: true }] },
+            { id: 'kazuha', name: '楓原万葉', rarity: 5, element: '風', elementBadge: 'bg-emerald-950 text-emerald-300 border-emerald-500', icon: 'fa-wind', iconColor: 'text-emerald-400', maxHp: 110, skills: [{ name: '千早振る', cost: 1, desc: '35ダメ & 敵の体勢を崩す' }, { name: '万葉の一風', cost: 2, desc: '65 広域風元素拡散！', isBurst: true }] },
+            { id: 'eula', name: 'エウルア', rarity: 5, element: '氷', elementBadge: 'bg-cyan-950 text-cyan-300 border-cyan-500', icon: 'fa-snowflake', iconColor: 'text-cyan-300', maxHp: 125, skills: [{ name: '氷渦の剣', cost: 1, desc: '35ダメージ' }, { name: '光華の剣', cost: 3, desc: '115 爆発物理ダメージ！', isBurst: true }] },
+            
+            // ★4 キャラ
+            { id: 'bennett', name: 'ベネット', rarity: 4, element: '炎', elementBadge: 'bg-rose-950 text-rose-300 border-rose-500', icon: 'fa-sun', iconColor: 'text-amber-500', maxHp: 100, skills: [{ name: '情熱過剰', cost: 1, desc: '敵に 35 ダメージ' }, { name: '素晴らしい旅', cost: 2, desc: '素晴らしい旅陣(3T 回復15 & 威力+20)', isBurst: true, isField: true, fieldId: 'bennettField' }] },
+            { id: 'lynette', name: 'リネット', rarity: 4, element: '風', elementBadge: 'bg-emerald-950 text-emerald-300 border-emerald-500', icon: 'fa-cat', iconColor: 'text-emerald-400', maxHp: 90, skills: [{ name: 'フェイント・ハザード', cost: 1, desc: '25ダメ & 猫デコイ(30HP)召喚', isField: true, fieldId: 'lynetteDecoy' }, { name: 'キャット・トリック', cost: 2, desc: '50ダメ & 強化猫デコイ(50HP)召喚', isBurst: true, isField: true, fieldId: 'lynetteDecoyMax' }] },
+            { id: 'traveler', name: '旅人', rarity: 4, element: '風', elementBadge: 'bg-teal-950 text-teal-300 border-teal-500', icon: 'fa-wind', iconColor: 'text-teal-300', maxHp: 100, skills: [{ name: '風渦剣', cost: 1, desc: '30ダメ & エネルギ―1回復' }, { name: '風神のまにまに', cost: 2, desc: '55 竜巻ダメージ', isBurst: true }] },
+            { id: 'xingqiu', name: '行秋', rarity: 4, element: '水', elementBadge: 'bg-sky-950 text-sky-300 border-sky-500', icon: 'fa-water', iconColor: 'text-sky-400', maxHp: 95, skills: [{ name: '古華剣・画雨籠山', cost: 1, desc: '30ダメ & 雨すだれの剣' }, { name: '裁雨留虹', cost: 2, desc: '60 連続剣雨ダメージ！', isBurst: true }] }
+        ];
+
+        /* ハズレアイテム（ガチャ用） */
+        const TRASH_ITEMS = [
+            { name: 'キャベツ', rarity: 3, icon: 'fa-seedling', desc: '新鮮なキャベツ' },
+            { name: '鉄塊', rarity: 3, icon: 'fa-cube', desc: '鍛造用材料' },
+            { name: 'スイートフラワー', rarity: 3, icon: 'fa-flower-tulip', desc: '甘いお花' },
+            { name: '理屈責め', rarity: 3, icon: 'fa-hammer', desc: '★3 武器' },
+            { name: 'ミント', rarity: 3, icon: 'fa-leaf', desc: '爽やかな草木' }
+        ];
+
+        /* 敵マスターデータベース */
+        const ENEMIES_DB = [
+            { name: 'ヒルチャール', element: '無元素', weakness: '炎', icon: 'fa-mask', iconColor: 'text-amber-600', maxHp: 80, skills: [{ name: '棍棒殴り', damage: 20 }, { name: '石投げ', damage: 15 }] },
+            { name: 'アビスの魔術師・水', element: '水元素', weakness: '雷', icon: 'fa-hat-wizard', iconColor: 'text-sky-400', maxHp: 110, skills: [{ name: '水弾照射', damage: 25 }, { name: 'バブルトラップ', damage: 35 }] },
+            { name: 'ヒルチャール暴徒・木楯', element: '木楯', weakness: '炎', icon: 'fa-shield-cat', iconColor: 'text-amber-500', maxHp: 130, skills: [{ name: '盾突進', damage: 30 }, { name: '大振り叩きつけ', damage: 45 }] },
+            { name: 'アビスの魔術師・炎', element: '炎元素', weakness: '水', icon: 'fa-fire-burner', iconColor: 'text-rose-500', maxHp: 140, skills: [{ name: '炎噴射', damage: 35 }, { name: '暗黒爆破', damage: 50 }] },
+            { name: '氷盾ヒルチャール暴徒', element: '氷元素', weakness: '炎', icon: 'fa-snowflake', iconColor: 'text-cyan-300', maxHp: 170, skills: [{ name: '氷斧攻撃', damage: 40 }, { name: '猛進ラッシュ', damage: 60 }] }
+        ];
+
+        /* アプリゲーム状態 */
+        const STATE = {
+            diamonds: 10,
+            unlockedCharIds: ['hutao', 'bennett', 'lynette', 'traveler'],
+            parties: [
+                ['hutao', 'bennett', 'lynette', 'traveler'],
+                ['hutao'],
+                ['bennett', 'traveler'],
+                ['lynette'],
+                ['traveler']
+            ],
+            selectedPartyIdx: 0,
+            editingPartyIdx: 0,
+
+            // 戦闘進行中データ
+            battle: {
+                energy: 2,
+                maxEnergy: 5,
+                turn: 1,
+                enemyIdx: 0,
+                activePlayerIdx: 0,
+                isPlayerTurn: true,
+                partyData: [],
+                enemy: null,
+                fieldStatuses: [] // バトル場設置効果（デコイ・陣など）
+            }
+        };
+
+        // UI制御：ドロワーメニュー開閉
+        function toggleMenu() {
+            const drawer = document.getElementById('nav-drawer');
+            const content = document.getElementById('drawer-content');
+            if (!drawer || !content) return;
+
+            const isOpen = !drawer.classList.contains('opacity-0');
+            if (isOpen) {
+                drawer.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('-translate-x-full');
+            } else {
+                drawer.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('-translate-x-full');
+            }
+        }
+
+        // UI制御：ページ切り替え
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`page-${pageId}`);
+            if (target) {
+                target.classList.remove('hidden');
+                target.classList.add('flex');
+            }
+            toggleMenu();
+
+            if (pageId === 'party') renderPartyPage();
+            if (pageId === 'battle') updateBattleUI();
+        }
+
+        /* ---------------- 対戦システム ---------------- */
+        function initBattle() {
+            const pIds = STATE.parties[STATE.selectedPartyIdx];
+            if (!pIds || pIds.length === 0) {
+                alert("パーティが空です！パーティ編成画面でキャラを配置してください。");
+                return;
+            }
+
+            STATE.battle.partyData = pIds.map(id => {
+                const c = CHARACTER_DB.find(char => char.id === id);
+                return { ...c, hp: c.maxHp };
+            });
+
+            STATE.battle.energy = 2;
+            STATE.battle.turn = 1;
+            STATE.battle.enemyIdx = 0;
+            STATE.battle.activePlayerIdx = 0;
+            STATE.battle.isPlayerTurn = true;
+            STATE.battle.fieldStatuses = [];
+
+            loadEnemy(0);
+            updateBattleUI();
+        }
+
+        function loadEnemy(idx) {
+            const tmpl = ENEMIES_DB[idx % ENEMIES_DB.length];
+            STATE.battle.enemy = {
+                ...tmpl,
+                hp: tmpl.maxHp,
+                nextSkillIdx: 0
+            };
+        }
+
+        function onBattlePartyChange() {
+            const sel = document.getElementById('battle-party-select');
+            STATE.selectedPartyIdx = parseInt(sel.value, 10);
+            initBattle();
+        }
+
+        /* フィールド効果追加 */
+        function addFieldStatus(type) {
+            const fs = STATE.battle.fieldStatuses;
+            if (type === 'bennettField') {
+                const existing = fs.find(s => s.id === 'bennettField');
+                if (existing) existing.turns = 3;
+                else fs.push({ id: 'bennettField', name: '素晴らしい旅', icon: 'fa-sun', color: 'bg-rose-950 text-rose-300 border-rose-500', turns: 3, atkBonus: 20, healPerTurn: 15 });
+            } else if (type === 'lynetteDecoy' || type === 'lynetteDecoyMax') {
+                const decoyHp = (type === 'lynetteDecoyMax') ? 50 : 30;
+                fs.push({ id: 'lynetteDecoy', name: '影野猫ボックス', icon: 'fa-cat', color: 'bg-emerald-950 text-emerald-300 border-emerald-500', turns: 3, hp: decoyHp, maxHp: decoyHp });
+            } else if (type === 'hutaoBuff') {
+                const activeChar = STATE.battle.partyData[STATE.battle.activePlayerIdx];
+                activeChar.hp = Math.max(1, activeChar.hp - 20);
+                showPopup('player-popup-anchor', '-20 自傷', 'damage');
+                fs.push({ id: 'hutaoBuff', name: '冥蝶の舞', icon: 'fa-fire', color: 'bg-rose-950 text-rose-300 border-rose-500', turns: 3, atkBonus: 25 });
+            } else if (type === 'zhongliShield') {
+                fs.push({ id: 'zhongliShield', name: '玉璋シールド', icon: 'fa-shield-halved', color: 'bg-amber-950 text-amber-300 border-amber-500', turns: 3, hp: 40, maxHp: 40 });
+            }
+        }
+
+        function useSkill(skillIdx) {
+            const b = STATE.battle;
+            if (!b.isPlayerTurn) return;
+
+            const activeChar = b.partyData[b.activePlayerIdx];
+            const skill = activeChar.skills[skillIdx];
+
+            if (b.energy < skill.cost) return;
+
+            b.energy -= skill.cost;
+
+            if (skill.isBurst) {
+                AudioFX.playBurst();
+                triggerCutin(activeChar.name, skill.name);
+            } else {
+                AudioFX.playHit();
+            }
+
+            if (skill.isField && skill.fieldId) {
+                addFieldStatus(skill.fieldId);
+            }
+
+            // バフ計算
+            let atkBonus = 0;
+            b.fieldStatuses.forEach(st => { if (st.atkBonus) atkBonus += st.atkBonus; });
+
+            // 弱点属性判定 (1.5倍)
+            const isWeakness = (activeChar.element === b.enemy.weakness);
+            const multiplier = isWeakness ? 1.5 : 1.0;
+
+            let baseDmg = (skillIdx === 1) ? 75 : 35;
+            let finalDmg = Math.floor((baseDmg + atkBonus) * multiplier);
+
+            b.enemy.hp = Math.max(0, b.enemy.hp - finalDmg);
+
+            showPopup('enemy-popup-anchor', `-${finalDmg}`, 'damage');
+            if (isWeakness) {
+                setTimeout(() => showPopup('enemy-popup-anchor', 'WEAKNESS! 1.5x', 'effective'), 200);
+            }
+
+            // 特別効果：胡桃爆発回復
+            if (activeChar.id === 'hutao' && skillIdx === 1) {
+                activeChar.hp = Math.min(activeChar.maxHp, activeChar.hp + 30);
+                showPopup('player-popup-anchor', '+30', 'heal');
+            }
+
+            updateBattleUI();
+
+            if (b.enemy.hp <= 0) {
+                setTimeout(() => {
+                    STATE.diamonds += 2;
+                    document.getElementById('global-diamonds').innerText = STATE.diamonds;
+                    showModal('VICTORY!', '敵を撃破しました！ 報酬として ダイヤ×2 を獲得！');
+                }, 800);
+            }
+        }
+
+        function switchActiveChar(benchIdx) {
+            const b = STATE.battle;
+            if (!b.isPlayerTurn) return;
+
+            if (benchIdx === b.activePlayerIdx || b.partyData[benchIdx].hp <= 0) return;
+
+            b.activePlayerIdx = benchIdx;
+            updateBattleUI();
+        }
+
+        function endPlayerTurn() {
+            const b = STATE.battle;
+            if (!b.isPlayerTurn) return;
+
+            b.isPlayerTurn = false;
+            updateBattleUI();
+
+            setTimeout(enemyTurnLogic, 900);
+        }
+
+        function enemyTurnLogic() {
+            const b = STATE.battle;
+            if (b.enemy.hp <= 0) return;
+
+            const activeChar = b.partyData[b.activePlayerIdx];
+            const sk = b.enemy.skills[b.enemy.nextSkillIdx];
+            let rawDmg = sk.damage;
+
+            // 1. デコイ（影野猫ボックス）吸着判定
+            const decoyIdx = b.fieldStatuses.findIndex(st => st.id === 'lynetteDecoy' && st.hp > 0);
+            if (decoyIdx !== -1) {
+                const decoy = b.fieldStatuses[decoyIdx];
+                if (decoy.hp >= rawDmg) {
+                    decoy.hp -= rawDmg;
+                    showPopup('player-popup-anchor', `デコイ吸収 -${rawDmg}`, 'effective');
+                    rawDmg = 0;
+                } else {
+                    rawDmg -= decoy.hp;
+                    decoy.hp = 0;
+                    showPopup('player-popup-anchor', `デコイ破壊!`, 'effective');
+                }
+                if (decoy.hp <= 0) b.fieldStatuses.splice(decoyIdx, 1);
+            }
+
+            // 2. シールド吸収判定
+            if (rawDmg > 0) {
+                const shieldIdx = b.fieldStatuses.findIndex(st => st.id === 'zhongliShield' && st.hp > 0);
+                if (shieldIdx !== -1) {
+                    const shield = b.fieldStatuses[shieldIdx];
+                    if (shield.hp >= rawDmg) {
+                        shield.hp -= rawDmg;
+                        showPopup('player-popup-anchor', `シールド -${rawDmg}`, 'heal');
+                        rawDmg = 0;
+                    } else {
+                        rawDmg -= shield.hp;
+                        shield.hp = 0;
+                        showPopup('player-popup-anchor', `シールド破砕!`, 'heal');
+                    }
+                    if (shield.hp <= 0) b.fieldStatuses.splice(shieldIdx, 1);
+                }
+            }
+
+            // 3. アクティブキャラダメージ受ける
+            if (rawDmg > 0) {
+                activeChar.hp = Math.max(0, activeChar.hp - rawDmg);
+                AudioFX.playHit();
+                showPopup('player-popup-anchor', `-${rawDmg}`, 'damage');
+            }
+
+            b.enemy.nextSkillIdx = Math.floor(Math.random() * b.enemy.skills.length);
+
+            // キャラ死亡チェック
+            if (activeChar.hp <= 0) {
+                const nextAlive = b.partyData.findIndex(c => c.hp > 0);
+                if (nextAlive !== -1) {
+                    b.activePlayerIdx = nextAlive;
+                } else {
+                    showModal('DEFEAT...', 'パーティーが全滅しました... 次は編成を工夫してみよう！');
+                    return;
+                }
+            }
+
+            // ターン経過＆回復処理
+            b.turn++;
+            b.energy = Math.min(b.maxEnergy, b.energy + 1);
+            b.isPlayerTurn = true;
+
+            b.fieldStatuses.forEach(st => {
+                if (st.healPerTurn && activeChar.hp > 0) {
+                    activeChar.hp = Math.min(activeChar.maxHp, activeChar.hp + st.healPerTurn);
+                    showPopup('player-popup-anchor', `+${st.healPerTurn}`, 'heal');
+                }
+                st.turns--;
+            });
+            b.fieldStatuses = b.fieldStatuses.filter(st => st.turns > 0 && (st.hp === undefined || st.hp > 0));
+
+            updateBattleUI();
+        }
+
+        /* フィールド効果バッジ描画 */
+        function renderFieldBadges() {
+            const list = document.getElementById('field-badges-list');
+            if (!list) return;
+            list.innerHTML = '';
+
+            const fs = STATE.battle.fieldStatuses;
+            if (!fs || fs.length === 0) {
+                list.innerHTML = `<span class="text-[10px] text-slate-500 italic text-center">発動中の設置効果なし</span>`;
+                return;
+            }
+
+            fs.forEach(st => {
+                const badge = document.createElement('div');
+                badge.className = `flex items-center justify-between px-2 py-1 rounded border text-[10px] font-bold ${st.color} shadow-sm`;
+                let subText = `${st.turns}T`;
+                if (st.hp !== undefined) subText = `HP:${st.hp}`;
+
+                badge.innerHTML = `
+                    <div class="flex items-center gap-1 truncate">
+                        <i class="fa-solid ${st.icon}"></i>
+                        <span class="truncate">${st.name}</span>
+                    </div>
+                    <span class="ml-1 px-1 py-0.2 rounded bg-slate-950/80 text-[9px] font-mono text-amber-300 border border-slate-700">${subText}</span>
+                `;
+                list.appendChild(badge);
+            });
+        }
+
+        function updateBattleUI() {
+            const b = STATE.battle;
+            document.getElementById('player-energy').innerText = b.energy;
+
+            renderFieldBadges();
+
+            // 敵UI
+            const e = b.enemy;
+            if (e) {
+                document.getElementById('enemy-name').innerText = e.name;
+                document.getElementById('enemy-element').innerText = e.element;
+                document.getElementById('enemy-weakness').innerHTML = `<i class="fa-solid fa-bullseye text-rose-400"></i> 弱点: ${e.weakness}`;
+                document.getElementById('enemy-icon').className = `fa-solid ${e.icon} text-4xl sm:text-5xl ${e.iconColor}`;
+                
+                const hpPct = Math.max(0, (e.hp / e.maxHp) * 100);
+                document.getElementById('enemy-hp-bar').style.width = `${hpPct}%`;
+                document.getElementById('enemy-hp-text').innerText = `${e.hp} / ${e.maxHp}`;
+
+                const nextSk = e.skills[e.nextSkillIdx];
+                document.getElementById('enemy-next-skill').innerText = `${nextSk.name} (${nextSk.damage})`;
+            }
+
+            // アクティブキャラUI
+            const char = b.partyData[b.activePlayerIdx];
+            if (char) {
+                document.getElementById('player-name').innerText = char.name;
+                document.getElementById('player-rarity').innerText = `★${char.rarity}`;
+                document.getElementById('player-element-badge').innerText = `${char.element}元素`;
+                document.getElementById('player-element-badge').className = `text-[10px] px-2 py-0.5 rounded font-bold ${char.elementBadge}`;
+                document.getElementById('player-icon').className = `fa-solid ${char.icon} text-5xl ${char.iconColor}`;
+
+                const playerHpPct = Math.max(0, (char.hp / char.maxHp) * 100);
+                document.getElementById('player-hp-bar').style.width = `${playerHpPct}%`;
+                document.getElementById('player-hp-text').innerText = `${char.hp} / ${char.maxHp}`;
+
+                const s1 = char.skills[0];
+                const s2 = char.skills[1];
+                document.getElementById('skill-1-name').innerText = s1.name;
+                document.getElementById('skill-1-desc').innerText = s1.desc;
+                document.getElementById('skill-1-cost').innerText = s1.cost;
+                document.getElementById('btn-skill-1').disabled = !b.isPlayerTurn || b.energy < s1.cost;
+
+                document.getElementById('skill-2-name').innerText = s2.name;
+                document.getElementById('skill-2-desc').innerText = s2.desc;
+                document.getElementById('skill-2-cost').innerText = s2.cost;
+                document.getElementById('btn-skill-2').disabled = !b.isPlayerTurn || b.energy < s2.cost;
+            }
+
+            document.getElementById('btn-end-turn').disabled = !b.isPlayerTurn;
+
+            // 控えベンチUI描画
+            const benchContainer = document.getElementById('bench-container');
+            if (benchContainer) {
+                benchContainer.innerHTML = '';
+                b.partyData.forEach((c, idx) => {
+                    if (idx === b.activePlayerIdx) return;
+
+                    const btn = document.createElement('button');
+                    btn.onclick = () => switchActiveChar(idx);
+                    btn.disabled = !b.isPlayerTurn || c.hp <= 0;
+                    btn.className = `bg-slate-900 border ${c.hp <= 0 ? 'border-slate-800 opacity-40' : 'border-slate-700 hover:border-amber-500'} p-1.5 rounded-lg text-center transition flex flex-col items-center justify-between h-16`;
+                    btn.innerHTML = `
+                        <div class="flex items-center justify-between w-full text-[9px] font-bold text-slate-400">
+                            <span>★${c.rarity}</span>
+                            <span>${c.element}</span>
+                        </div>
+                        <span class="text-xs font-bold text-slate-200 truncate w-full">${c.name}</span>
+                        <div class="w-full bg-slate-950 rounded-full h-1.5 border border-slate-800 overflow-hidden">
+                            <div class="bg-emerald-500 h-full" style="width: ${(c.hp / c.maxHp) * 100}%"></div>
+                        </div>
+                    `;
+                    benchContainer.appendChild(btn);
+                });
+            }
+        }
+
+        /* ---------------- パーティ編成画面 ---------------- */
+        function renderPartyPage() {
+            // タブ生成
+            const tabsContainer = document.getElementById('party-slot-tabs');
+            tabsContainer.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const btn = document.createElement('button');
+                btn.onclick = () => { STATE.editingPartyIdx = i; renderPartyPage(); };
+                btn.className = `px-2.5 py-1 rounded-lg text-xs font-bold border transition ${STATE.editingPartyIdx === i ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 text-slate-400 border-slate-700'}`;
+                btn.innerText = `P${i + 1}`;
+                tabsContainer.appendChild(btn);
+            }
+
+            // 現在のパーティ枠
+            const slotsContainer = document.getElementById('current-party-slots');
+            slotsContainer.innerHTML = '';
+            const party = STATE.parties[STATE.editingPartyIdx];
+
+            for (let slot = 0; slot < 4; slot++) {
+                const charId = party[slot];
+                const char = CHARACTER_DB.find(c => c.id === charId);
+
+                const slotDiv = document.createElement('div');
+                slotDiv.className = `bg-slate-950 border border-slate-800 rounded-xl p-2 flex flex-col items-center justify-center min-h-[100px] relative ${char ? 'border-amber-500/50' : 'border-dashed'}`;
+
+                if (char) {
+                    slotDiv.innerHTML = `
+                        <button onclick="removeFromParty(${slot})" class="absolute top-1 right-1 text-rose-400 hover:text-rose-300 text-xs p-1">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <i class="fa-solid ${char.icon} text-3xl ${char.iconColor} my-1"></i>
+                        <span class="text-xs font-bold text-amber-200">${char.name}</span>
+                        <span class="text-[9px] text-slate-400">★${char.rarity} | ${char.element}</span>
+                    `;
+                } else {
+                    slotDiv.innerHTML = `<span class="text-xs text-slate-600 font-bold">+ 空き枠</span>`;
+                }
+                slotsContainer.appendChild(slotDiv);
+            }
+
+            // 所持キャラグリッド
+            const grid = document.getElementById('unlocked-characters-grid');
+            grid.innerHTML = '';
+            document.getElementById('unlocked-count').innerText = `所持: ${STATE.unlockedCharIds.length}キャラ`;
+
+            STATE.unlockedCharIds.forEach(id => {
+                const char = CHARACTER_DB.find(c => c.id === id);
+                if (!char) return;
+
+                const inParty = party.includes(id);
+                const card = document.createElement('div');
+                card.onclick = () => togglePartyCharacter(id);
+                card.className = `p-2 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-between relative ${inParty ? 'bg-indigo-950/60 border-indigo-500' : 'bg-slate-900 border-slate-800 hover:border-slate-600'}`;
+                card.innerHTML = `
+                    ${inParty ? '<span class="absolute top-1 right-1 text-[9px] bg-indigo-500 text-white font-bold px-1 rounded">編成中</span>' : ''}
+                    <i class="fa-solid ${char.icon} text-2xl ${char.iconColor} my-1"></i>
+                    <span class="text-xs font-bold text-slate-200 truncate w-full">${char.name}</span>
+                    <span class="text-[9px] text-slate-400">★${char.rarity}</span>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function removeFromParty(slotIdx) {
+            STATE.parties[STATE.editingPartyIdx].splice(slotIdx, 1);
+            renderPartyPage();
+        }
+
+        function togglePartyCharacter(charId) {
+            const party = STATE.parties[STATE.editingPartyIdx];
+            const idx = party.indexOf(charId);
+            if (idx !== -1) {
+                party.splice(idx, 1);
+            } else {
+                if (party.length >= 4) {
+                    alert("パーティは最大4人までです。");
+                    return;
+                }
+                party.push(charId);
+            }
+            renderPartyPage();
+        }
+
+        /* ---------------- ガチャ (祈願) ---------------- */
+        function pullGacha(count) {
+            if (STATE.diamonds < count) {
+                alert(`ダイヤが足りません！（必要: ${count}ダイヤ）`);
+                return;
+            }
+
+            STATE.diamonds -= count;
+            document.getElementById('global-diamonds').innerText = STATE.diamonds;
+
+            const grid = document.getElementById('gacha-cards-grid');
+            grid.innerHTML = '';
+            document.getElementById('gacha-result-container').classList.remove('hidden');
+
+            for (let i = 0; i < count; i++) {
+                const rand = Math.random() * 100;
+                let item = null;
+
+                if (rand < 3) { // 3% ★5キャラ
+                    const star5s = CHARACTER_DB.filter(c => c.rarity === 5);
+                    item = star5s[Math.floor(Math.random() * star5s.length)];
+                } else if (rand < 18) { // 15% ★4キャラ
+                    const star4s = CHARACTER_DB.filter(c => c.rarity === 4);
+                    item = star4s[Math.floor(Math.random() * star4s.length)];
+                } else { // 82% ハズレアイテム
+                    item = TRASH_ITEMS[Math.floor(Math.random() * TRASH_ITEMS.length)];
+                }
+
+                // 所持登録
+                if (item.element && !STATE.unlockedCharIds.includes(item.id)) {
+                    STATE.unlockedCharIds.push(item.id);
+                }
+
+                // カード描画
+                const card = document.createElement('div');
+                const is5Star = item.rarity === 5;
+                const is4Star = item.rarity === 4;
+
+                card.className = `tcg-card p-3 rounded-xl text-center flex flex-col items-center justify-between min-h-[130px] ${is5Star ? 'card-5star' : is4Star ? 'card-4star' : 'card-trash'}`;
+                card.innerHTML = `
+                    <span class="text-[10px] font-bold ${is5Star ? 'text-amber-300' : is4Star ? 'text-purple-300' : 'text-slate-400'}">★${item.rarity}</span>
+                    <i class="fa-solid ${item.icon || 'fa-box'} text-3xl my-2 ${is5Star ? 'text-amber-400' : is4Star ? 'text-purple-400' : 'text-slate-400'}"></i>
+                    <span class="text-xs font-bold text-slate-100 truncate w-full">${item.name}</span>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        /* ---------------- 演出 ＆ 汎用ポップアップ ---------------- */
+        function triggerCutin(charName, skillName) {
+            const modal = document.getElementById('skill-cutin-modal');
+            document.getElementById('cutin-char-name').innerText = charName;
+            document.getElementById('cutin-skill-name').innerText = skillName;
+
+            modal.classList.add('active');
+            setTimeout(() => { modal.classList.remove('active'); }, 1200);
+        }
+
+        function showPopup(anchorId, text, type) {
+            const anchor = document.getElementById(anchorId);
+            if (!anchor) return;
+
+            const pop = document.createElement('div');
+            pop.className = type === 'damage' ? 'damage-popup' : type === 'effective' ? 'effective-popup' : 'heal-popup';
+            pop.innerText = text;
+
+            anchor.appendChild(pop);
+            setTimeout(() => pop.remove(), 1100);
+        }
+
+        function showModal(title, desc) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            document.getElementById('game-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('game-modal').classList.add('hidden');
+            initBattle();
+        }
+
+        // 初期化実行
+        window.onload = function() {
+            initBattle();
+        };
+    </script>
+</body>
+</html>
